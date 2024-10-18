@@ -1,10 +1,11 @@
 # escolho o cinema
 
-print("Escolha o cinema em que você deseja assitir")
+print("Cinemas em Campo Grande")
 print("1 - Cinepolis")
 print("2 - Cinemark")
 print("3 - UCI")
-cinema = int(input)
+
+cinema = int(input("Escolha o cinema em que você deseja assitir"))
 
 
 # escolho o filme
