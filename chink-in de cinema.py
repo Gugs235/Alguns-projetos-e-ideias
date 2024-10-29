@@ -4,33 +4,60 @@ while True:
     print("1 - Cinepolis")
     print("2 - Cinemark")
     print("3 - UCI")
-    cinema = int(input("Digite o código do cinema em que você deseja assitir: "))
+    print("0 - Sair")
+    cinema = int(input("Digite o código do cinema em que você deseja assistir ou 0 para sair: "))
+
+    # Condição de saída do loop principal
+    if cinema == 0:
+        print("Encerrando o programa.")
+        break
 
     # escolho o filme
     if cinema == 1:
         while True:
-            print("Cinepolis escolhido com sucesso")
-            print("Qual é o filme em que voce deseja assistir?")
+            print("\nCinepolis escolhido com sucesso")
+            print("Qual é o filme em que você deseja assistir?")
             print("1 - Sorria 2")
             print("2 - Robô Selvagem")
             print("3 - Coringa: Delírio a Dois")
             print("4 - A Forja")
-            filme = int(input("Digite o código do filme que você deseja assitir: "))
-            if filme ==0:
+            print("0 - Voltar")
+            filme = int(input("Digite o código do filme que você deseja assistir ou 0 para voltar: "))
+            
+            if filme == 0:
                 break
-            elif filme ==1:
+
+            elif filme == 1:
                 while True:
-                    print("Sorria 2")
-                    print("Qual horário deseja assistir?")
-                    print("1 - 13h")
-                    print("2 - 15h")
-                    print("3 - 17h")
-                    print("4 - 19h")
-                    horario = int(input("Digite o horário do filme que você deseja assitir: "))
-                    if horario == 1:
-                        print("13h")
-                    elif horario == 0:
+                    # escolha o dia
+                    print("\nSorria 2 foi selecionado")
+                    print("Qual dia deseja assistir?")
+                    print("1 - segunda")
+                    print("2 - quarta")
+                    print("3 - sexta")
+                    print("4 - sábado")
+                    print("0 - Voltar")
+                    dia = int(input("Digite o dia em que você deseja assistir ou 0 para voltar: "))
+                    
+                    if dia == 0:
                         break
+
+                    # escolha o horário
+                    if dia == 1:
+                        print("\nSegunda foi selecionada")
+                        print("1 - 13h")
+                        print("2 - 15h")
+                        print("3 - 17h")
+                        print("4 - 19h")
+                        print("0 - Voltar")
+                        horario = int(input("Digite o horário em que você deseja assistir ou 0 para voltar: "))
+                        
+                        if horario == 0:
+                            break
+                        else:
+                            print(f"Filme 'Sorria 2' selecionado para segunda-feira às {horario}h.")
+                            # Aqui, adicione qualquer ação que o programa faça após a seleção completa.
+
 
 
 
@@ -63,5 +90,5 @@ while True:
         print("Código invalido")
 
 
-    # escolho o dia e horaio
+    # escolha o dia e horario
     # escolho a forma de pagamento
