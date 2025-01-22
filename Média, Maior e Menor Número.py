@@ -10,22 +10,25 @@
 # Use um loop for para encontrar o maior, o menor e calcular a média sem usar max(), min() ou sum().
 
 
-numeros = []
+lista = []
 for i in range(5):
     num = int(input(f"Digite o {i+1}º número: "))
-    numeros.append(num)
+    lista.append(num)
 
-maior = numeros[0]
-menor = numeros[0]
+maior = lista[0]
+menor = lista[0]
+soma = 0
 
-for num in numeros:
+for num in lista:
     if num > maior:
         maior = num
     if num < menor:
         menor = num
+    soma += num
 
+media = soma / len(lista)
 
-
-print(f"O maior número é: {maior}")
+print(f"\nO maior número é: {maior}")
 print(f"O menor número é: {menor}")
+print(f"A soma dos número é: {soma}")
 print(f"A média é: {media}")
