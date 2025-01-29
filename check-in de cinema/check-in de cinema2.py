@@ -1,17 +1,4 @@
-# Escolha do cinema 
-
-
-
-# Escolha do filme
-
-
-
-# Escolha do dia/horário
-
-
-
-# Forma de pagamento
-
+# check in de cinema 2.0
 
 import sys
 

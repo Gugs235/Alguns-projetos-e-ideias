@@ -1,6 +1,8 @@
+# check in de cinema 3.0
+
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox, QMessageBox
 import sys
 import sqlite3
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox, QMessageBox, QGridLayout, QDialog, QSpinBox
 
 # Configuração inicial do banco de dados
 def inicializar_banco():
@@ -150,6 +152,9 @@ class TelaAssento(QWidget):
         self.carregar_assentos()
         self.botao_continuar.clicked.connect(self.ir_para_pagamento)
 
+        # List to keep track of occupied seats
+        self.assentos_ocupados = []
+
     def carregar_assentos(self):
         conexao = sqlite3.connect("cinema.db")
         cursor = conexao.cursor()
@@ -170,6 +175,13 @@ class TelaAssento(QWidget):
 
     def ir_para_pagamento(self):
         assento_id = self.combo_assento.currentData()
+        
+        # Check if the seat is already occupied
+        if assento_id in self.assentos_ocupados:
+            QMessageBox.warning(self, "Assento Ocupado", "Este assento já está ocupado. Escolha outro.")
+            return
+        
+        self.assentos_ocupados.append(assento_id)  # Add to occupied seats list
         self.pagamento_tela = TelaPagamento(assento_id)
         self.pagamento_tela.show()
         self.close()
@@ -192,9 +204,17 @@ class TelaPagamento(QWidget):
         self.layout.addWidget(self.botao_finalizar)
         
         self.setLayout(self.layout)
+        self.assento_id = assento_id
         self.botao_finalizar.clicked.connect(self.finalizar)
 
     def finalizar(self):
+        # Update the seat status in the database
+        conexao = sqlite3.connect("cinema.db")
+        cursor = conexao.cursor()
+        cursor.execute("UPDATE assentos SET ocupado = 1 WHERE id = ?", (self.assento_id,))
+        conexao.commit()
+        conexao.close()
+
         QMessageBox.information(self, "Sucesso", "Compra finalizada!")
         self.close()
 

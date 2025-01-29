@@ -1,3 +1,5 @@
+# check in de cinema 1.0
+
 # Escolha do cinema
 while True:
     print("Cinemas em Campo Grande")
