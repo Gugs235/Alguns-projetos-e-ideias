@@ -1,15 +1,15 @@
-# check in de cinema 3.0
+# Check-in de Cinema 3.0
 
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox, QMessageBox
 import sys
 import sqlite3
 
-# Configuração inicial do banco de dados
+# Função para configurar o banco de dados inicial
 def inicializar_banco():
     conexao = sqlite3.connect("cinema.db")
     cursor = conexao.cursor()
     
-    # Criando tabelas
+    # Criando tabelas para armazenar cinemas, filmes e assentos
     cursor.executescript('''
         CREATE TABLE IF NOT EXISTS cinemas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +32,7 @@ def inicializar_banco():
         );
     ''')
     
-    # Inserindo cinemas e filmes se não existirem
+    # Inserindo alguns cinemas no banco caso ainda não existam
     cursor.execute("SELECT COUNT(*) FROM cinemas")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO cinemas (nome) VALUES (?)", [
@@ -41,6 +41,7 @@ def inicializar_banco():
             ("Cinemark Norte Sul Plaza",)
         ])
     
+    # Inserindo alguns filmes no banco caso ainda não existam
     cursor.execute("SELECT COUNT(*) FROM filmes")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO filmes (cinema_id, nome) VALUES (?, ?)", [
@@ -55,7 +56,7 @@ def inicializar_banco():
     conexao.commit()
     conexao.close()
 
-# Tela principal
+# Tela principal do programa
 class TelaPrincipal(QWidget):
     def __init__(self):
         super().__init__()
@@ -76,6 +77,7 @@ class TelaPrincipal(QWidget):
         self.carregar_cinemas()
         self.botao_continuar.clicked.connect(self.ir_para_filmes)
 
+    # Carrega os cinemas disponíveis no banco de dados
     def carregar_cinemas(self):
         conexao = sqlite3.connect("cinema.db")
         cursor = conexao.cursor()
@@ -86,13 +88,14 @@ class TelaPrincipal(QWidget):
         for cinema in self.cinemas:
             self.combo_cinema.addItem(cinema[1], cinema[0])
 
+    # Abre a tela de escolha de filmes
     def ir_para_filmes(self):
         cinema_id = self.combo_cinema.currentData()
         self.filme_tela = TelaFilme(cinema_id)
         self.filme_tela.show()
         self.close()
 
-# Tela de escolha de filme
+# Tela de seleção de filme
 class TelaFilme(QWidget):
     def __init__(self, cinema_id):
         super().__init__()
@@ -114,6 +117,7 @@ class TelaFilme(QWidget):
         self.carregar_filmes()
         self.botao_continuar.clicked.connect(self.ir_para_assentos)
 
+    # Carrega os filmes disponíveis no cinema selecionado
     def carregar_filmes(self):
         conexao = sqlite3.connect("cinema.db")
         cursor = conexao.cursor()
@@ -124,13 +128,14 @@ class TelaFilme(QWidget):
         for filme in self.filmes:
             self.combo_filme.addItem(filme[1], filme[0])
 
+    # Abre a tela de seleção de assentos
     def ir_para_assentos(self):
         filme_id = self.combo_filme.currentData()
         self.assento_tela = TelaAssento(filme_id)
         self.assento_tela.show()
         self.close()
 
-# Tela de escolha de assento
+# Tela de seleção de assento
 class TelaAssento(QWidget):
     def __init__(self, filme_id):
         super().__init__()
@@ -152,14 +157,12 @@ class TelaAssento(QWidget):
         self.carregar_assentos()
         self.botao_continuar.clicked.connect(self.ir_para_pagamento)
 
-        # List to keep track of occupied seats
-        self.assentos_ocupados = []
-
+    # Carrega os assentos disponíveis para o filme selecionado
     def carregar_assentos(self):
         conexao = sqlite3.connect("cinema.db")
         cursor = conexao.cursor()
         
-        # Criando assentos se não existirem
+        # Criando assentos caso ainda não existam
         cursor.execute("SELECT COUNT(*) FROM assentos WHERE filme_id = ?", (self.filme_id,))
         if cursor.fetchone()[0] == 0:
             assentos = [(self.filme_id, f"A{i}") for i in range(1, 11)]
@@ -173,15 +176,9 @@ class TelaAssento(QWidget):
         for assento in self.assentos_disponiveis:
             self.combo_assento.addItem(assento[1], assento[0])
 
+    # Abre a tela de pagamento
     def ir_para_pagamento(self):
         assento_id = self.combo_assento.currentData()
-        
-        # Check if the seat is already occupied
-        if assento_id in self.assentos_ocupados:
-            QMessageBox.warning(self, "Assento Ocupado", "Este assento já está ocupado. Escolha outro.")
-            return
-        
-        self.assentos_ocupados.append(assento_id)  # Add to occupied seats list
         self.pagamento_tela = TelaPagamento(assento_id)
         self.pagamento_tela.show()
         self.close()
@@ -207,8 +204,8 @@ class TelaPagamento(QWidget):
         self.assento_id = assento_id
         self.botao_finalizar.clicked.connect(self.finalizar)
 
+    # Finaliza a compra e marca o assento como ocupado
     def finalizar(self):
-        # Update the seat status in the database
         conexao = sqlite3.connect("cinema.db")
         cursor = conexao.cursor()
         cursor.execute("UPDATE assentos SET ocupado = 1 WHERE id = ?", (self.assento_id,))
@@ -218,6 +215,7 @@ class TelaPagamento(QWidget):
         QMessageBox.information(self, "Sucesso", "Compra finalizada!")
         self.close()
 
+# Iniciando o aplicativo
 if __name__ == "__main__":
     inicializar_banco()
     app = QApplication(sys.argv)
