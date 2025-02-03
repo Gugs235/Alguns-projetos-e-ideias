@@ -70,16 +70,21 @@ def liberar_assento(assento):
         return f"{GREEN}Assento {assento} liberado com sucesso!{RESET}"
     return f"{RED}Assento {assento} já está livre!{RESET}"
 
-# Função para exibir todos os assentos
+# Função para exibir todos os assentos com informações de cinema e filme
 def exibir_assentos():
-    cursor.execute("SELECT assento, ocupado FROM assentos")
+    cursor.execute("""
+        SELECT assentos.assento, assentos.ocupado, filmes.nome, cinemas.nome 
+        FROM assentos 
+        JOIN filmes ON assentos.filme_id = filmes.id 
+        JOIN cinemas ON filmes.cinema_id = cinemas.id
+    """)
     resultado = cursor.fetchall()
     if not resultado:
         print("Nenhum assento cadastrado.")
         return
     for assento in resultado:
         status = f"{RED}Ocupado{RESET}" if assento[1] == 1 else f"{GREEN}Livre{RESET}"
-        print(f"Assento {assento[0]} - {status}")
+        print(f"Assento: {assento[0]} - Status: {status} - Filme: {assento[2]} - Cinema: {assento[3]}")
 
 # Função para exibir dados do cinema
 def exibir_dados():
@@ -93,23 +98,16 @@ def exibir_dados():
         print("Nenhum cinema cadastrado.")
 
     print("\n🎬 Filmes Disponíveis:")
-    cursor.execute("SELECT * FROM filmes")
+    cursor.execute("SELECT filmes.id, filmes.nome, cinemas.nome FROM filmes JOIN cinemas ON filmes.cinema_id = cinemas.id")
     filmes = cursor.fetchall()
     if filmes:
         for filme in filmes:
-            print(f"ID: {filme[0]} - Cinema ID: {filme[1]} - Nome: {filme[2]}")
+            print(f"ID: {filme[0]} - Nome: {filme[1]} - Cinema: {filme[2]}")
     else:
         print("Nenhum filme cadastrado.")
 
     print("\n🎟️ Assentos Disponíveis:")
-    cursor.execute("SELECT assento, ocupado FROM assentos")
-    assentos = cursor.fetchall()
-    if assentos:
-        for assento in assentos:
-            status = f"{RED}Ocupado{RESET}" if assento[1] == 1 else f"{GREEN}Livre{RESET}"
-            print(f"Assento: {assento[0]} - Status: {status}")
-    else:
-        print("Nenhum assento cadastrado.")
+    exibir_assentos()
 
 # Função para criar um cinema
 def criar_cinema():
@@ -143,36 +141,33 @@ def liberar_assentos():
 if __name__ == "__main__":
     while True:
         print("\n🎬 Menu -------------------------")
-        print("1. Listar cinemas")
-        print("2. Listar filmes")
-        print("3. Listar assentos")
-        print("4. Criar cinema")
-        print("5. Criar filme")
-        print("6. Criar assento")
-        print("7. Reservar assento")
-        print("8. Liberar assento")
-        print("9. Sair")
+        print("1. Exibir dados")
+        print("2. Listar assentos")
+        print("3. Criar cinema")
+        print("4. Criar filme")
+        print("5. Criar assento")
+        print("6. Reservar assento")
+        print("7. Liberar assento")
+        print("0. Sair")
         
         opcao = input("Digite a opção desejada: ")
         
         if opcao == "1":
             exibir_dados()
         elif opcao == "2":
-            exibir_dados()
-        elif opcao == "3":
             exibir_assentos()
-        elif opcao == "4":
+        elif opcao == "3":
             criar_cinema()
-        elif opcao == "5":
+        elif opcao == "4":
             criar_filme()
-        elif opcao == "6":
+        elif opcao == "5":
             criar_assento()
-        elif opcao == "7":
+        elif opcao == "6":
             assento = input("Digite o assento que deseja reservar: ")
             print(reservar_assento(assento))
-        elif opcao == "8":
+        elif opcao == "7":
             liberar_assentos()
-        elif opcao == "9":
+        elif opcao == "0":
             print("Obrigado por usar o sistema de assentos!")
             break
         else:
