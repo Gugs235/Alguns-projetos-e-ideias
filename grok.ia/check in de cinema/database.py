@@ -3,15 +3,37 @@ import sqlite3
 import os
 
 def init_db():
-    # Remove o banco de dados existente para garantir uma recriação limpa
     db_path = 'cinema.db'
     if os.path.exists(db_path):
         os.remove(db_path)
         print("Banco de dados antigo removido.")
 
-    # Conecta ao banco de dados (será criado um novo)
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+
+    # Tabela de Usuários
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            sobrenome TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            senha TEXT NOT NULL
+        )
+    ''')
+
+    # Tabela de Cartões (para dados sensíveis)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cartoes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER,
+            nome_cartao TEXT,
+            numero_cartao TEXT,
+            data_expiracao TEXT,
+            cvv TEXT,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        )
+    ''')
 
     # Tabela de Cinemas
     cursor.execute('''
@@ -21,12 +43,18 @@ def init_db():
         )
     ''')
 
-    # Tabela de Filmes
+    # Tabela de Filmes (com informações adicionais)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS filmes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
             cinema_id INTEGER,
+            duracao TEXT,
+            data_lancamento TEXT,
+            genero TEXT,
+            classificacao TEXT,
+            sinopse TEXT,
+            trailer_url TEXT,
             FOREIGN KEY (cinema_id) REFERENCES cinemas(id)
         )
     ''')
@@ -38,6 +66,7 @@ def init_db():
             filme_id INTEGER,
             data TEXT NOT NULL,
             horario TEXT NOT NULL,
+            tipo_sala TEXT NOT NULL,
             lotacao_maxima INTEGER NOT NULL,
             FOREIGN KEY (filme_id) REFERENCES filmes(id)
         )
@@ -54,16 +83,29 @@ def init_db():
         )
     ''')
 
-    # Tabela de Reservas
+    # Tabela de Reservas (Compras)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS reservas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER,
             sessao_id INTEGER,
             assento_id INTEGER,
             forma_pagamento TEXT NOT NULL,
             valor_total REAL NOT NULL,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
             FOREIGN KEY (sessao_id) REFERENCES sessoes(id),
             FOREIGN KEY (assento_id) REFERENCES assentos(id)
+        )
+    ''')
+
+    # Tabela de Favoritos
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS favoritos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER,
+            filme_id INTEGER,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+            FOREIGN KEY (filme_id) REFERENCES filmes(id)
         )
     ''')
 
@@ -76,71 +118,95 @@ def init_db():
     for cinema in cinemas:
         cursor.execute("INSERT INTO cinemas (nome) VALUES (?)", (cinema,))
 
-    # Inserir Filmes
+    # Inserir Filmes (com informações adicionais)
     filmes = [
-        ("Fé para o Impossível", 1),  # Cinemark
-        ("Meu Malvado Favorito 1", 1),
-        ("Meu Malvado Favorito 2", 1),
-        ("Meu Malvado Favorito 3", 2),  # Cinépolis
-        ("Meu Malvado Favorito 4", 2),
-        ("Minions 1", 3),  # UCI
-        ("Minions 2", 3),
-        ("Shrek - 2001", 1),
-        ("Shrek 2 - 2004", 1),
-        ("Shrek Terceiro - 2007", 2),
-        ("Shrek no Natal", 2),
-        ("Shrek para Sempre - 2010", 3),
-        ("O Susto de Shrek - 2010", 3),
-        ("Shrek 5 - 2026", 1),
-        ("Capitão América: Admirável Mundo Novo", 2),
-        ("Sonic 1", 3),
-        ("Sonic 2", 1),
-        ("Sonic 3", 2),
-        ("Vingadores Ultimato", 3),
-        ("Wicked", 1),
-        ("Fragmentados", 2),
-        ("Telefone Preto", 3),
-        ("Invocação do Mal", 1)
+        ("Fé para o Impossível", 1, "1h 40min", "2023-08-15", "Drama", "12", 
+         "Um jovem enfrenta desafios para alcançar um milagre.", "https://youtube.com/trailer1"),
+        ("Meu Malvado Favorito 1", 1, "1h 35min", "2010-07-09", "Animação", "Livre", 
+         "Gru, um vilão, adota três meninas e descobre o amor.", "https://youtube.com/trailer2"),
+        ("Meu Malvado Favorito 2", 1, "1h 38min", "2013-07-03", "Animação", "Livre", 
+         "Gru é recrutado para salvar o mundo.", "https://youtube.com/trailer3"),
+        ("Meu Malvado Favorito 3", 2, "1h 36min", "2017-06-29", "Animação", "Livre", 
+         "Gru conhece seu irmão gêmeo Dru.", "https://youtube.com/trailer4"),
+        ("Meu Malvado Favorito 4", 2, "1h 40min", "2024-07-03", "Animação", "Livre", 
+         "Gru enfrenta um novo vilão com sua família.", "https://youtube.com/trailer5"),
+        ("Minions 1", 3, "1h 31min", "2015-07-09", "Animação", "Livre", 
+         "Os Minions buscam um novo mestre do mal.", "https://youtube.com/trailer6"),
+        ("Minions 2", 3, "1h 27min", "2022-07-01", "Animação", "Livre", 
+         "Os Minions ajudam Gru a se tornar um vilão.", "https://youtube.com/trailer7"),
+        ("Shrek - 2001", 1, "1h 30min", "2001-05-18", "Animação", "Livre", 
+         "Shrek, um ogro, tenta resgatar uma princesa.", "https://youtube.com/trailer8"),
+        ("Shrek 2 - 2004", 1, "1h 33min", "2004-05-19", "Animação", "Livre", 
+         "Shrek conhece os pais de Fiona.", "https://youtube.com/trailer9"),
+        ("Shrek Terceiro - 2007", 2, "1h 33min", "2007-05-18", "Animação", "Livre", 
+         "Shrek precisa encontrar um novo rei para o trono.", "https://youtube.com/trailer10"),
+        ("Shrek no Natal", 2, "30min", "2007-11-28", "Animação", "Livre", 
+         "Shrek tenta celebrar o Natal pela primeira vez.", "https://youtube.com/trailer11"),
+        ("Shrek para Sempre - 2010", 3, "1h 33min", "2010-05-21", "Animação", "Livre", 
+         "Shrek faz um pacto que muda sua realidade.", "https://youtube.com/trailer12"),
+        ("O Susto de Shrek - 2010", 3, "30min", "2010-10-28", "Animação", "Livre", 
+         "Shrek organiza uma competição de sustos no Halloween.", "https://youtube.com/trailer13"),
+        ("Shrek 5 - 2026", 1, "1h 35min", "2026-05-20", "Animação", "Livre", 
+         "Shrek retorna para uma nova aventura.", "https://youtube.com/trailer14"),
+        ("Capitão América: Admirável Mundo Novo", 2, "2h 10min", "2025-02-14", "Ação", "14", 
+         "Sam Wilson enfrenta novas ameaças como Capitão América.", "https://youtube.com/trailer15"),
+        ("Sonic 1", 3, "1h 39min", "2020-02-14", "Aventura", "Livre", 
+         "Sonic se junta a um amigo humano para deter o Dr. Robotnik.", "https://youtube.com/trailer16"),
+        ("Sonic 2", 1, "2h 02min", "2022-04-08", "Aventura", "Livre", 
+         "Sonic enfrenta Knuckles e o Dr. Robotnik.", "https://youtube.com/trailer17"),
+        ("Sonic 3", 2, "2h 05min", "2024-12-20", "Aventura", "Livre", 
+         "Sonic e amigos lutam contra Shadow.", "https://youtube.com/trailer18"),
+        ("Vingadores Ultimato", 3, "3h 01min", "2019-04-26", "Ação", "12", 
+         "Os Vingadores tentam reverter o estalo de Thanos.", "https://youtube.com/trailer19"),
+        ("Wicked", 1, "2h 30min", "2024-11-27", "Musical", "10", 
+         "A história de Elphaba e Glinda antes de O Mágico de Oz.", "https://youtube.com/trailer20"),
+        ("Fragmentados", 2, "1h 52min", "2016-09-22", "Suspense", "16", 
+         "Três personalidades de um homem sequestram uma jovem.", "https://youtube.com/trailer21"),
+        ("Telefone Preto", 3, "1h 43min", "2022-06-24", "Terror", "16", 
+         "Uma criança sequestrada recebe ajuda de vítimas do passado.", "https://youtube.com/trailer22"),
+        ("Invocação do Mal", 1, "1h 52min", "2013-07-19", "Terror", "16", 
+         "Investigadores paranormais enfrentam uma entidade demoníaca.", "https://youtube.com/trailer23")
     ]
-    for filme, cinema_id in filmes:
-        cursor.execute("INSERT INTO filmes (nome, cinema_id) VALUES (?, ?)", (filme, cinema_id))
+    for filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url in filmes:
+        cursor.execute("INSERT INTO filmes (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
+                       (filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url))
 
-    # Inserir Sessões (Dias e Horários)
+    # Inserir Sessões (Dias, Horários e Tipos de Sala)
     sessoes = [
-        (1, "2025-03-15", "14:00", 50),  # Fé para o Impossível no Cinemark
-        (1, "2025-03-15", "18:00", 50),
-        (2, "2025-03-15", "15:00", 50),  # Meu Malvado Favorito 1 no Cinemark
-        (3, "2025-03-16", "16:00", 50),  # Meu Malvado Favorito 2 no Cinemark
-        (4, "2025-03-15", "14:30", 50),  # Meu Malvado Favorito 3 na Cinépolis
-        (5, "2025-03-16", "17:00", 50),  # Meu Malvado Favorito 4 na Cinépolis
-        (6, "2025-03-15", "13:00", 50),  # Minions 1 na UCI
-        (7, "2025-03-16", "19:00", 50),  # Minions 2 na UCI
-        (8, "2025-03-15", "16:00", 50),  # Shrek - 2001 no Cinemark
-        (9, "2025-03-16", "14:00", 50),  # Shrek 2 - 2004 no Cinemark
-        (10, "2025-03-15", "18:30", 50), # Shrek Terceiro na Cinépolis
-        (11, "2025-03-15", "20:00", 50), # Shrek no Natal na Cinépolis
-        (12, "2025-03-16", "15:00", 50), # Shrek para Sempre na UCI
-        (13, "2025-03-16", "17:30", 50), # O Susto de Shrek na UCI
-        (14, "2025-03-15", "19:00", 50), # Shrek 5 no Cinemark
-        (15, "2025-03-15", "21:00", 50), # Capitão América na Cinépolis
-        (16, "2025-03-16", "14:00", 50), # Sonic 1 na UCI
-        (17, "2025-03-15", "16:30", 50), # Sonic 2 no Cinemark
-        (18, "2025-03-16", "18:00", 50), # Sonic 3 na Cinépolis
-        (19, "2025-03-15", "20:30", 50), # Vingadores Ultimato na UCI
-        (20, "2025-03-16", "13:30", 50), # Wicked no Cinemark
-        (21, "2025-03-15", "15:30", 50), # Fragmentados na Cinépolis
-        (22, "2025-03-16", "16:00", 50), # Telefone Preto na UCI
-        (23, "2025-03-15", "19:30", 50)  # Invocação do Mal no Cinemark
+        (1, "2025-03-15", "14:00", "Convencional", 50),
+        (1, "2025-03-15", "18:00", "IMAX", 50),
+        (2, "2025-03-15", "15:00", "3D", 50),
+        (3, "2025-03-16", "16:00", "VIP", 30),
+        (4, "2025-03-15", "14:30", "Drive-in", 20),
+        (5, "2025-03-16", "17:00", "Convencional", 50),
+        (6, "2025-03-15", "13:00", "IMAX", 50),
+        (7, "2025-03-16", "19:00", "3D", 50),
+        (8, "2025-03-15", "16:00", "VIP", 30),
+        (9, "2025-03-16", "14:00", "Drive-in", 20),
+        (10, "2025-03-15", "18:30", "Convencional", 50),
+        (11, "2025-03-15", "20:00", "IMAX", 50),
+        (12, "2025-03-16", "15:00", "3D", 50),
+        (13, "2025-03-16", "17:30", "VIP", 30),
+        (14, "2025-03-15", "19:00", "Drive-in", 20),
+        (15, "2025-03-15", "21:00", "Convencional", 50),
+        (16, "2025-03-16", "14:00", "IMAX", 50),
+        (17, "2025-03-15", "16:30", "3D", 50),
+        (18, "2025-03-16", "18:00", "VIP", 30),
+        (19, "2025-03-15", "20:30", "Drive-in", 20),
+        (20, "2025-03-16", "13:30", "Convencional", 50),
+        (21, "2025-03-15", "15:30", "IMAX", 50),
+        (22, "2025-03-16", "16:00", "3D", 50),
+        (23, "2025-03-15", "19:30", "VIP", 30)
     ]
-    for filme_id, data, horario, lotacao in sessoes:
-        cursor.execute("INSERT INTO sessoes (filme_id, data, horario, lotacao_maxima) VALUES (?, ?, ?, ?)", 
-                       (filme_id, data, horario, lotacao))
+    for filme_id, data, horario, tipo_sala, lotacao in sessoes:
+        cursor.execute("INSERT INTO sessoes (filme_id, data, horario, tipo_sala, lotacao_maxima) VALUES (?, ?, ?, ?, ?)", 
+                       (filme_id, data, horario, tipo_sala, lotacao))
 
     # Criar assentos para cada sessão
     cursor.execute("SELECT id FROM sessoes")
     sessoes_ids = [row[0] for row in cursor.fetchall()]
     for sessao_id in sessoes_ids:
-        for i in range(1, 51):  # 50 assentos por sessão
+        for i in range(1, 51):
             cursor.execute("INSERT OR IGNORE INTO assentos (sessao_id, numero) VALUES (?, ?)", 
                            (sessao_id, f"A{i}"))
 
