@@ -1,8 +1,12 @@
 # frontend.py
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit, QMessageBox, QScrollArea, QGridLayout, QDialog, QComboBox, QListWidget, QTextEdit
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QUrl
 from backend import CinemaBackend
 import sys
+import os
+from PySide6.QtMultimedia import QMediaPlayer
+from PySide6.QtMultimediaWidgets import QVideoWidget
+import yt_dlp
 
 class LoginWindow(QWidget):
     def __init__(self, parent=None):
@@ -186,55 +190,100 @@ class CadastroForm(QDialog):
             QMessageBox.critical(self, "Erro", mensagem)
 
 class FilmeInfoWindow(QDialog):
-    def __init__(self, backend, usuario_id, filme_id, parent=None):
+    def __init__(self, backend, usuario_id, filme_id, app_parent, parent=None):
         super().__init__(parent)
         self.backend = backend
         self.usuario_id = usuario_id
         self.filme_id = filme_id
+        self.app_parent = app_parent  # Referência ao CinemaApp
         self.setWindowTitle("Informações do Filme")
         self.init_ui()
 
+    def favoritar_filme(self):
+        sucesso, mensagem = self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
+        if sucesso:
+            QMessageBox.information(self, "Sucesso", mensagem)
+        else:
+            QMessageBox.critical(self, "Erro", mensagem)
+
+    def abrir_selecao_sessao(self):
+        self.sessao_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self.app_parent, self)
+        self.sessao_window.exec()
+
+    def get_youtube_video_url(self, youtube_url):
+        try:
+            ydl_opts = {
+                'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]',  # Limita a 480p para compatibilidade
+                'quiet': True,
+                'no_warnings': True,
+                'merge_output_format': 'mp4',  # Força formato MP4
+                'outtmpl': '-',  # Não baixa, apenas retorna a URL
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(youtube_url, download=False)
+                if 'url' in info.get('formats', [{}])[0]:
+                    return info.get('formats', [{}])[0]['url']
+                else:
+                    print(f"Erro: 'url' não encontrado na resposta do yt-dlp para {youtube_url}")
+                    return None
+        except Exception as e:
+            print(f"Erro ao extrair URL do YouTube: {str(e)}")
+            return None
+
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(10)  # Adiciona espaçamento entre os widgets
-        layout.setContentsMargins(10, 10, 10, 10)  # Margens ao redor do layout
+        layout.setSpacing(10)
+        layout.setContentsMargins(10, 10, 10, 10)
 
-        # Título do filme
         filme_info = self.backend.get_filme_info(self.filme_id)
         title_label = QLabel(filme_info[1])
         title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #ffffff; padding: 5px;")
         layout.addWidget(title_label)
 
-        # Informações do filme
+        trailer_label = QLabel("Trailer:")
+        trailer_label.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
+        layout.addWidget(trailer_label)
+        self.video_widget = QVideoWidget()
+        self.video_widget.setFixedSize(400, 200)
+        layout.addWidget(self.video_widget)
+        self.media_player = QMediaPlayer(self)
+        self.media_player.setVideoOutput(self.video_widget)
+
+        youtube_url = filme_info[8]  # URL do trailer do filme
+        video_url = self.get_youtube_video_url(youtube_url)
+        if video_url:
+            trailer_url = QUrl(video_url)
+            self.media_player.setSource(trailer_url)
+            self.media_player.play()
+            self.media_player.error.connect(lambda: print(f"Erro ao reproduzir o vídeo: {self.media_player.errorString()}"))
+        else:
+            error_label = QLabel(f"Não foi possível carregar o trailer para {filme_info[1]}. Verifique a URL ou a conexão.")
+            error_label.setStyleSheet("color: #ff5555; font-size: 14px;")
+            layout.addWidget(error_label)
+
+        # Restante do código (informações adicionais, botões, etc.)
         info_layout = QVBoxLayout()
         info_layout.addWidget(QLabel(f"Duração: {filme_info[3]}"))
         info_layout.addWidget(QLabel(f"Data de Lançamento: {filme_info[4]}"))
         info_layout.addWidget(QLabel(f"Gênero: {filme_info[5]}"))
         info_layout.addWidget(QLabel(f"Classificação: {filme_info[6]}"))
 
-        # Sinopse com QTextEdit ajustável
         sinopse_widget = QWidget()
         sinopse_layout = QVBoxLayout(sinopse_widget)
         sinopse_label = QLabel("Sinopse:")
         sinopse_label.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
         sinopse_text = QTextEdit(filme_info[7])
         sinopse_text.setReadOnly(True)
-        sinopse_text.setFixedHeight(100)  # Limita a altura para evitar que domine
+        sinopse_text.setFixedHeight(100)
         sinopse_text.setStyleSheet("background-color: #2a2a2a; color: #ffffff; border: 1px solid #444; border-radius: 5px; padding: 5px;")
         sinopse_layout.addWidget(sinopse_label)
         sinopse_layout.addWidget(sinopse_text)
         info_layout.addWidget(sinopse_widget)
 
-        # Trailer
-        trailer_label = QLabel(f"Trailer: {filme_info[8]}")
-        trailer_label.setStyleSheet("color: #ffffff; font-size: 16px;")
-        info_layout.addWidget(trailer_label)
-
         layout.addLayout(info_layout)
 
-        # Botões
         button_layout = QHBoxLayout()
-        button_layout.setSpacing(10)  # Espaçamento entre botões
+        button_layout.setSpacing(10)
         favoritar_btn = QPushButton("Favoritar")
         favoritar_btn.clicked.connect(self.favoritar_filme)
         favoritar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; border-radius: 8px; padding: 8px;")
@@ -259,23 +308,17 @@ class FilmeInfoWindow(QDialog):
                 min-width: 120px;
             }
         """)
-        self.setMinimumSize(400, 500)  # Tamanho mínimo em vez de fixo
-        self.adjustSize()  # Ajusta o tamanho automaticamente ao conteúdo
-
-    def favoritar_filme(self):
-        self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
-        QMessageBox.information(self, "Sucesso", "Filme adicionado aos favoritos!")
-
-    def abrir_selecao_sessao(self):
-        self.sessao_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self)
-        self.sessao_window.exec()
+        self.setMinimumSize(400, 600)
+        self.adjustSize()
 
 class SessaoWindow(QDialog):
-    def __init__(self, backend, usuario_id, filme_id, parent=None):
+    def __init__(self, backend, usuario_id, filme_id, app_parent, parent=None):
         super().__init__(parent)
         self.backend = backend
         self.usuario_id = usuario_id
         self.filme_id = filme_id
+        self.app_parent = app_parent
+        self.selected_assentos = []  # Inicializa a lista de assentos selecionados
         self.setWindowTitle("Seleção de Sessão")
         self.init_ui()
 
@@ -329,26 +372,93 @@ class SessaoWindow(QDialog):
         self.atualizar_assentos()
         self.confirmar_btn.setEnabled(True)
 
+    def abrir_compra(self):
+        if not hasattr(self, 'selected_assentos') or not self.selected_assentos:
+            QMessageBox.warning(self, "Erro", "Selecione pelo menos um assento!")
+            return
+        self.compra_window = CompraWindow(self.backend, self.usuario_id, self.filme_id, self.selected_sessao_id, self.selected_assentos, self.app_parent, self)
+        self.compra_window.exec()
+
     def atualizar_assentos(self):
         for i in range(self.assentos_grid.count()):
             self.assentos_grid.itemAt(i).widget().deleteLater()
         self.assentos.clear()
 
-        assentos = self.backend.get_assentos_disponiveis(self.selected_sessao_id)
-        for idx, assento in enumerate(assentos[:25]):  # Mostrar 25 assentos em um grid 5x5
+        assentos_disponiveis = self.backend.get_assentos_disponiveis(self.selected_sessao_id)
+        _, maxima = self.backend.get_lotacao_atual(self.selected_sessao_id)
+        assentos_exibir = [f"A{i:02d}" for i in range(1, min(26, maxima + 1))]  # Limita ao mínimo de 25 ou lotação máxima
+        for idx, assento in enumerate(assentos_exibir):
             btn = QPushButton(assento)
-            btn.setStyleSheet("background-color: green; color: white; border-radius: 4px;")
+            btn.setStyleSheet("""
+                background-color: green;
+                color: white;
+                border-radius: 5px;
+                min-width: 50px;
+                min-height: 50px;
+                width: 50px;
+                height: 50px;
+                font-size: 14px;
+            """)
             btn.clicked.connect(lambda checked, a=assento: self.selecionar_assento(a))
+            if assento not in assentos_disponiveis:
+                btn.setStyleSheet("""
+                    background-color: gray;
+                    color: white;
+                    border-radius: 5px;
+                    min-width: 50px;
+                    min-height: 50px;
+                    width: 50px;
+                    height: 50px;
+                    font-size: 14px;
+                """)
+                btn.setEnabled(False)
             self.assentos[assento] = btn
             self.assentos_grid.addWidget(btn, idx // 5, idx % 5)
 
+        self.assentos_grid.setSpacing(10)
+
     def selecionar_assento(self, assento):
         btn = self.assentos[assento]
-        if btn.styleSheet().find("yellow") != -1:
-            btn.setStyleSheet("background-color: green; color: white; border-radius: 5px;")
+        is_selected = "yellow" in btn.styleSheet()
+        if is_selected:
+            btn.setStyleSheet("""
+                background-color: green;
+                color: white;
+                border-radius: 5px;
+                min-width: 50px;
+                min-height: 50px;
+                width: 50px;
+                height: 50px;
+                font-size: 14px;
+            """)
+            if assento in self.selected_assentos:
+                self.selected_assentos.remove(assento)
         else:
-            btn.setStyleSheet("background-color: yellow; color: black; border-radius: 5px;")
-        self.selected_assentos = [a for a, b in self.assentos.items() if b.styleSheet().find("yellow") != -1]
+            # Verifica se o assento já está selecionado antes de adicionar
+            if assento not in self.selected_assentos and len(self.selected_assentos) < 10:  # Limite de 10 assentos por compra
+                btn.setStyleSheet("""
+                    background-color: yellow;
+                    color: black;
+                    border-radius: 5px;
+                    min-width: 50px;
+                    min-height: 50px;
+                    width: 50px;
+                    height: 50px;
+                    font-size: 14px;
+                """)
+                self.selected_assentos.append(assento)
+            else:
+                QMessageBox.warning(self, "Erro", "Assento já selecionado ou limite de 10 assentos atingido!")
+                btn.setStyleSheet("""
+                    background-color: gray;
+                    color: white;
+                    border-radius: 5px;
+                    min-width: 50px;
+                    min-height: 50px;
+                    width: 50px;
+                    height: 50px;
+                    font-size: 14px;
+                """)
 
     def abrir_compra(self):
         if not hasattr(self, 'selected_assentos') or not self.selected_assentos:
@@ -358,13 +468,15 @@ class SessaoWindow(QDialog):
         self.compra_window.exec()
 
 class CompraWindow(QDialog):
-    def __init__(self, backend, usuario_id, filme_id, sessao_id, assentos, parent=None):
+    def __init__(self, backend, usuario_id, filme_id, sessao_id, assentos, app_parent, parent=None):
         super().__init__(parent)
         self.backend = backend
         self.usuario_id = usuario_id
         self.filme_id = filme_id
         self.sessao_id = sessao_id
         self.assentos = assentos
+        self.app_parent = app_parent
+        self.voltar_btn = None  # Inicializa como None
         self.setWindowTitle("Confirmar Compra")
         self.init_ui()
 
@@ -436,27 +548,45 @@ class CompraWindow(QDialog):
 
     def confirmar_pagamento(self):
         forma_pagamento = self.pagamento_combo.currentText()
+        print(f"Forma de pagamento selecionada: {forma_pagamento}")  # Depuração
         if forma_pagamento == "Cartão de Crédito/Débito":
-            nome_cartao = self.nome_cartao.text()
-            numero_cartao = self.numero_cartao.text()
-            data_expiracao = self.data_expiracao.text()
-            cvv = self.cvv.text()
+            nome_cartao = self.nome_cartao.text().strip()
+            numero_cartao = self.numero_cartao.text().strip()
+            data_expiracao = self.data_expiracao.text().strip()
+            cvv = self.cvv.text().strip()
+
+            print(f"Campos: Nome={nome_cartao}, Número={numero_cartao}, Data={data_expiracao}, CVV={cvv}")  # Depuração
             if not all([nome_cartao, numero_cartao, data_expiracao, cvv]):
-                QMessageBox.warning(self, "Erro", "Preencha todos os dados do cartão!")
+                QMessageBox.warning(self, "Erro", "Preencha todos os campos do cartão!")
                 return
+            if len(numero_cartao) != 16 or not numero_cartao.isdigit():
+                QMessageBox.warning(self, "Erro", "O número do cartão deve ter exatamente 16 dígitos numéricos!")
+                return
+            if len(data_expiracao) != 5 or data_expiracao[2] != '/' or not all(c.isdigit() for c in data_expiracao.replace('/', '')):
+                QMessageBox.warning(self, "Erro", "A data de expiração deve estar no formato MM/AA!")
+                return
+            if len(cvv) != 3 or not cvv.isdigit():
+                QMessageBox.warning(self, "Erro", "O CVV deve ter exatamente 3 dígitos numéricos!")
+                return
+
+            print("Salvando cartão no backend...")  # Depuração
             self.backend.salvar_cartao(self.usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv)
 
+        print("Reservando assentos...")  # Depuração
         sucesso, mensagem = self.backend.reservar_assentos(self.usuario_id, self.sessao_id, self.assentos, forma_pagamento)
+        print(f"Reserva retornou: sucesso={sucesso}, mensagem={mensagem}")  # Depuração
+
         if sucesso:
             QMessageBox.information(self, "Sucesso", mensagem)
-            voltar_btn = QPushButton("Voltar para a Home")
-            voltar_btn.clicked.connect(self.voltar_home)
-            self.layout().addWidget(voltar_btn)
+            if not self.voltar_btn:  # Adiciona o botão apenas se não existir
+                self.voltar_btn = QPushButton("Voltar para a Home")
+                self.voltar_btn.clicked.connect(self.voltar_home)
+                self.layout().addWidget(self.voltar_btn)
         else:
             QMessageBox.critical(self, "Erro", mensagem)
 
     def voltar_home(self):
-        self.parent().parent().parent().show_home()
+        self.app_parent.show_home()  # Usa a referência direta
         self.accept()
 
 class CinemaApp(QMainWindow):
@@ -494,10 +624,10 @@ class CinemaApp(QMainWindow):
         self.usuario_nome = usuario_nome
 
         self.nav_bar = QHBoxLayout()
-        self.nav_bar.addWidget(self.create_nav_icon("🏠", self.show_home))
-        self.nav_bar.addWidget(self.create_nav_icon("⭐", self.show_favoritos))
-        self.nav_bar.addWidget(self.create_nav_icon("🎟️", self.show_compras))
-        self.nav_bar.addWidget(self.create_nav_icon("👤", self.show_perfil))
+        self.nav_bar.addWidget(self.create_nav_icon("🏠 Home", self.show_home))
+        self.nav_bar.addWidget(self.create_nav_icon("⭐ Favoritos", self.show_favoritos))
+        self.nav_bar.addWidget(self.create_nav_icon("🎟️ Compras", self.show_compras))
+        self.nav_bar.addWidget(self.create_nav_icon("👤 Perfil", self.show_perfil))
         self.main_layout.addLayout(self.nav_bar)
 
         self.content_widget = QWidget()
@@ -619,7 +749,7 @@ class PosterWidget(QLabel):
         self.mousePressEvent = self.on_click
 
     def on_click(self, event):
-        info_window = FilmeInfoWindow(self.backend, self.usuario_id, self.filme_id, self.parent())
+        info_window = FilmeInfoWindow(self.backend, self.usuario_id, self.filme_id, self.parent(), self.parent())
         info_window.exec()
 
 if __name__ == "__main__":

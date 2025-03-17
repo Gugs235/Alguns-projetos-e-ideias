@@ -66,23 +66,38 @@ class CinemaBackend:
 
     def reservar_assentos(self, usuario_id, sessao_id, assentos, forma_pagamento):
         ocupados, maxima = self.get_lotacao_atual(sessao_id)
+        print(f"Lotação atual: {ocupados}/{maxima}, Tentando reservar {len(assentos)} assentos")  # Depuração
         if ocupados + len(assentos) > maxima:
             return False, "Sala lotada!"
 
         valor_total = len(assentos) * 20.0  # Preço fixo por ingresso
-        for assento in assentos:
-            self.cursor.execute("UPDATE assentos SET reservado = 1 WHERE sessao_id = ? AND numero = ?", (sessao_id, assento))
-            self.cursor.execute("SELECT id FROM assentos WHERE sessao_id = ? AND numero = ?", (sessao_id, assento))
-            assento_id = self.cursor.fetchone()[0]
-            self.cursor.execute("INSERT INTO reservas (usuario_id, sessao_id, assento_id, forma_pagamento, valor_total) VALUES (?, ?, ?, ?, ?)",
-                                (usuario_id, sessao_id, assento_id, forma_pagamento, valor_total / len(assentos)))
-        
-        self.conn.commit()
-        return True, f"Compra concluída! Valor total: R${valor_total:.2f}"
+        try:
+            for assento in assentos:
+                self.cursor.execute("UPDATE assentos SET reservado = 1 WHERE sessao_id = ? AND numero = ? AND reservado = 0", (sessao_id, assento))
+                if self.cursor.rowcount == 0:
+                    raise Exception(f"Assento {assento} já reservado ou não existe!")
+                self.cursor.execute("SELECT id FROM assentos WHERE sessao_id = ? AND numero = ?", (sessao_id, assento))
+                assento_id = self.cursor.fetchone()
+                if assento_id:
+                    assento_id = assento_id[0]
+                    self.cursor.execute("INSERT INTO reservas (usuario_id, sessao_id, assento_id, forma_pagamento, valor_total) VALUES (?, ?, ?, ?, ?)",
+                                        (usuario_id, sessao_id, assento_id, forma_pagamento, valor_total / len(assentos)))
+                else:
+                    raise Exception(f"Assento {assento} não encontrado para sessão {sessao_id}")
+            self.conn.commit()
+            return True, f"Compra concluída! Valor total: R${valor_total:.2f}"
+        except Exception as e:
+            self.conn.rollback()
+            print(f"Erro ao reservar assentos: {e}")  # Depuração
+            return False, f"Erro ao realizar compra: {str(e)}"
 
     def adicionar_favorito(self, usuario_id, filme_id):
-        self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (?, ?)", (usuario_id, filme_id))
-        self.conn.commit()
+        try:
+            self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (?, ?)", (usuario_id, filme_id))
+            self.conn.commit()
+            return True, "Filme adicionado aos favoritos!"
+        except sqlite3.IntegrityError:
+            return False, "Filme já está nos favoritos!"
 
     def remover_favorito(self, usuario_id, filme_id):
         self.cursor.execute("DELETE FROM favoritos WHERE usuario_id = ? AND filme_id = ?", (usuario_id, filme_id))
