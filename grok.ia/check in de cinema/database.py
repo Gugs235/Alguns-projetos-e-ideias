@@ -4,9 +4,9 @@ import os
 
 def init_db():
     db_path = 'cinema.db'
-    if os.path.exists(db_path):
-        os.remove(db_path)
-        print("Banco de dados antigo removido.")
+    # if os.path.exists(db_path):
+    #     os.remove(db_path)
+    #     print("Banco de dados antigo removido.")
 
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()

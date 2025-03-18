@@ -213,19 +213,21 @@ class FilmeInfoWindow(QDialog):
     def get_youtube_video_url(self, youtube_url):
         try:
             ydl_opts = {
-                'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]',  # Limita a 480p para compatibilidade
+                'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]',  # Prioriza 480p
                 'quiet': True,
                 'no_warnings': True,
-                'merge_output_format': 'mp4',  # Força formato MP4
+                'merge_output_format': 'mp4',  # Tenta mesclar vídeo e áudio em MP4
                 'outtmpl': '-',  # Não baixa, apenas retorna a URL
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(youtube_url, download=False)
-                if 'url' in info.get('formats', [{}])[0]:
-                    return info.get('formats', [{}])[0]['url']
-                else:
-                    print(f"Erro: 'url' não encontrado na resposta do yt-dlp para {youtube_url}")
-                    return None
+                print(f"Formatos disponíveis: {info.get('formats', [])}")  # Depuração
+                for fmt in info.get('formats', []):
+                    if 'url' in fmt and ('video/mp4' in fmt.get('format', '') or 'video/webm' in fmt.get('format', '')):
+                        print(f"URL de vídeo encontrada: {fmt['url']}")
+                        return fmt['url']
+                print(f"Erro: Nenhuma URL de vídeo (MP4 ou WebM) encontrada para {youtube_url}")
+                return None
         except Exception as e:
             print(f"Erro ao extrair URL do YouTube: {str(e)}")
             return None
@@ -252,10 +254,17 @@ class FilmeInfoWindow(QDialog):
         youtube_url = filme_info[8]  # URL do trailer do filme
         video_url = self.get_youtube_video_url(youtube_url)
         if video_url:
+            print(f"URL do stream: {video_url}")  # Depuração para verificar a URL
             trailer_url = QUrl(video_url)
             self.media_player.setSource(trailer_url)
             self.media_player.play()
-            self.media_player.error.connect(lambda: print(f"Erro ao reproduzir o vídeo: {self.media_player.errorString()}"))
+            # Conectar ao sinal errorOccurred corretamente
+            def handle_error(error, error_string):
+                print(f"Erro ao reproduzir o vídeo: Código {error}, Mensagem: {error_string}")
+                error_label = QLabel(f"Erro ao reproduzir o trailer: {error_string}")
+                error_label.setStyleSheet("color: #ff5555; font-size: 14px;")
+                layout.addWidget(error_label)
+            self.media_player.errorOccurred.connect(handle_error)
         else:
             error_label = QLabel(f"Não foi possível carregar o trailer para {filme_info[1]}. Verifique a URL ou a conexão.")
             error_label.setStyleSheet("color: #ff5555; font-size: 14px;")
@@ -376,6 +385,7 @@ class SessaoWindow(QDialog):
         if not hasattr(self, 'selected_assentos') or not self.selected_assentos:
             QMessageBox.warning(self, "Erro", "Selecione pelo menos um assento!")
             return
+        # Passa self.app_parent (CinemaApp) como app_parent para CompraWindow
         self.compra_window = CompraWindow(self.backend, self.usuario_id, self.filme_id, self.selected_sessao_id, self.selected_assentos, self.app_parent, self)
         self.compra_window.exec()
 
