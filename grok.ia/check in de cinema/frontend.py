@@ -332,49 +332,39 @@ class SessaoWindow(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+        self.setWindowTitle("Selecionar Sessão")
+        self.setGeometry(300, 300, 600, 400)
+        layout = QVBoxLayout()
 
-        self.sessao_list = QListWidget()
-        sessoes_info = self.backend.get_sessoes_info(self.filme_id)
-        for sessao in sessoes_info:
-            sessao_id, data, horario, tipo_sala, cinema_nome = sessao
-            self.sessao_list.addItem(f"{sessao_id} - {cinema_nome} - {data} às {horario} ({tipo_sala})")
-        self.sessao_list.itemClicked.connect(self.on_sessao_selected)
-        layout.addWidget(QLabel("Sessões Disponíveis:"))
-        layout.addWidget(self.sessao_list)
+        # Título
+        title_label = QLabel("Selecione uma Sessão", self)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #ffffff;")
+        layout.addWidget(title_label)
 
-        self.assentos_grid = QGridLayout()
-        self.assentos = {}
-        layout.addWidget(QLabel("Mapa de Assentos:"))
-        layout.addLayout(self.assentos_grid)
+        # Lista de sessões
+        self.sessao_combo = QComboBox(self)
+        self.sessao_combo.setStyleSheet("background-color: #333333; color: #ffffff; padding: 5px;")
+        sessoes = self.backend.get_sessoes_info(self.filme_id)
+        for sessao in sessoes:
+            sessao_id, data, horario, tipo_sala, cinema_nome = sessao  # Ajustado para as 5 colunas retornadas
+            self.sessao_combo.addItem(f"{cinema_nome} - {data} {horario} ({tipo_sala})", sessao_id)
+        layout.addWidget(self.sessao_combo)
 
-        self.confirmar_btn = QPushButton("Confirmar")
-        self.confirmar_btn.clicked.connect(self.abrir_compra)
-        self.confirmar_btn.setEnabled(False)
-        layout.addWidget(self.confirmar_btn)
+        # Botões
+        btn_layout = QHBoxLayout()
+        btn_confirmar = QPushButton("Confirmar", self)
+        btn_confirmar.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px; border-radius: 5px;")
+        btn_confirmar.clicked.connect(self.confirmar_sessao)
+        btn_layout.addWidget(btn_confirmar)
 
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #1a1a1a;
-            }
-            QLabel {
-                color: #ffffff;
-                font-size: 16px;
-            }
-            QPushButton {
-                background-color: #e50914;
-                color: #ffffff;
-                border-radius: 8px;
-                padding: 8px;
-            }
-            QListWidget {
-                background-color: #2a2a2a;
-                color: #ffffff;
-                border: 1px solid #444;
-                border-radius: 8px;
-            }
-        """)
-        self.setFixedSize(500, 600)
+        btn_voltar = QPushButton("Voltar", self)
+        btn_voltar.setStyleSheet("background-color: #f44336; color: white; padding: 10px; border-radius: 5px;")
+        btn_voltar.clicked.connect(self.voltar)
+        btn_layout.addWidget(btn_voltar)
+
+        layout.addLayout(btn_layout)
+        self.setLayout(layout)
 
     def on_sessao_selected(self, item):
         self.selected_sessao_id = int(item.text().split(" - ")[0])
@@ -596,8 +586,18 @@ class CompraWindow(QDialog):
             QMessageBox.critical(self, "Erro", mensagem)
 
     def voltar_home(self):
-        self.app_parent.show_home()  # Usa a referência direta
-        self.accept()
+        print("Fechando CompraWindow")
+        self.close()
+
+        parent = self.parent()
+        while parent and isinstance(parent, QDialog):
+            print(f"Fechando janela pai: {type(parent).__name__}")
+            parent.close()
+            parent = parent.parent()
+
+        print("Exibindo Home")
+        self.app_parent.clear_content()
+        self.app_parent.show_home()
 
 class CinemaApp(QMainWindow):
     def __init__(self):
@@ -625,6 +625,11 @@ class CinemaApp(QMainWindow):
             }
         """)
         self.resize(800, 600)
+
+    def closeEvent(self, event):
+        print("Fechando a conexão com o banco de dados...")
+        self.backend.fechar_conexao()
+        event.accept()
 
     def show_main_window(self, usuario_id, usuario_nome):
         self.main_layout.removeWidget(self.login_screen)
@@ -717,7 +722,7 @@ class CinemaApp(QMainWindow):
         grid_compras = QGridLayout()
         compras = self.backend.get_compras(self.usuario_id)
         for idx, compra in enumerate(compras):
-            compra_label = QLabel(f"{compra[1]} - {compra[2]} às {compra[3]} ({compra[4]}) - Assento: {compra[6]}")
+            compra_label = QLabel(f"{compra[1]} - {compra[2]} - {compra[3]} - Assento: {compra[4]}")
             grid_compras.addWidget(compra_label, idx, 0)
         compras_layout.addLayout(grid_compras)
         scroll_layout.addWidget(compras_section)
