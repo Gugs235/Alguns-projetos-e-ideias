@@ -1,12 +1,22 @@
 # backend.py
-import sqlite3
+import mysql.connector
 from database import CinemaDatabase
 
 class CinemaBackend:
     def __init__(self):
         self.db = CinemaDatabase()
         self.conn = self.db.conn
-        self.cursor = self.db.cursor
+        # Usar cursor buffered para evitar resultados pendentes
+        self.cursor = self.conn.cursor(buffered=True)
+
+    def login_usuario(self, email, senha):
+        try:
+            self.cursor.execute("SELECT id, nome FROM usuarios WHERE email = %s AND senha = %s", (email, senha))
+            usuario = self.cursor.fetchone()
+            return usuario  # Retorna (usuario_id, nome) ou None se não encontrar
+        except Exception as e:
+            print(f"Erro ao fazer login: {str(e)}")
+            return None
 
     def cadastrar_usuario(self, nome, sobrenome, email, senha):
         try:
@@ -39,8 +49,12 @@ class CinemaBackend:
         return self.cursor.fetchone()
 
     def salvar_cartao(self, usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv):
-        self.cursor.execute("INSERT OR REPLACE INTO cartoes (usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv) VALUES (%s, %s, %s, %s, %s)", 
-                            (usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv))
+        self.cursor.execute("""
+            INSERT INTO cartoes (usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv) 
+            VALUES (%s, %s, %s, %s, %s) 
+            ON DUPLICATE KEY UPDATE 
+                nome_cartao=%s, numero_cartao=%s, data_expiracao=%s, cvv=%s
+        """, (usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv, nome_cartao, numero_cartao, data_expiracao, cvv))
         self.conn.commit()
 
     def get_filmes_all(self):
@@ -76,11 +90,11 @@ class CinemaBackend:
 
     def reservar_assentos(self, usuario_id, sessao_id, assentos, forma_pagamento):
         ocupados, maxima = self.get_lotacao_atual(sessao_id)
-        print(f"Lotação atual: {ocupados}/{maxima}, Tentando reservar {len(assentos)} assentos")  # Depuração
+        print(f"Lotação atual: {ocupados}/{maxima}, Tentando reservar {len(assentos)} assentos")
         if ocupados + len(assentos) > maxima:
             return False, "Sala lotada!"
 
-        valor_total = len(assentos) * 20.0  # Preço fixo por ingresso
+        valor_total = len(assentos) * 20.0
         try:
             for assento in assentos:
                 self.cursor.execute("UPDATE assentos SET reservado = 1 WHERE sessao_id = %s AND numero = %s AND reservado = 0", (sessao_id, assento))
@@ -98,7 +112,7 @@ class CinemaBackend:
             return True, f"Compra concluída! Valor total: R${valor_total:.2f}"
         except Exception as e:
             self.conn.rollback()
-            print(f"Erro ao reservar assentos: {e}")  # Depuração
+            print(f"Erro ao reservar assentos: {e}")
             return False, f"Erro ao realizar compra: {str(e)}"
 
     def adicionar_favorito(self, usuario_id, filme_id):

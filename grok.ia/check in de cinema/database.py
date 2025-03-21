@@ -231,7 +231,7 @@ class CinemaDatabase:
                 ("Meu Malvado Favorito 1", 1, "01:35:00", "2010-07-09", "Animação", "Livre", 
                 "Gru, um vilão, adota três meninas e descobre o amor.", "https://www.youtube.com/watch?v=sUkZFetWYY0"),
                 ("Meu Malvado Favorito 2", 1, "01:38:00", "2013-07-03", "Animação", "Livre", 
-                "Gru é recrutado para salvar o mundo.", "https://www.youtube.com/watch?v=AVdG6W1fwPk"),  # URL corrigida
+                "Gru é recrutado para salvar o mundo.", "https://youtu.be/gi2QWNZ9jms?si=DbPr2-JSSfbGU4ML"),  # URL corrigida
                 ("Meu Malvado Favorito 3", 2, "01:36:00", "2017-06-29", "Animação", "Livre", 
                 "Gru conhece seu irmão gêmeo Dru.", "https://www.youtube.com/watch?v=e5e5kFPg2kA"),
                 ("Meu Malvado Favorito 4", 2, "01:40:00", "2024-07-03", "Animação", "Livre", 
