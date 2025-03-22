@@ -8,6 +8,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 import yt_dlp
 from PyQt6.QtGui import QPixmap  # Adicionando QPixmap para trabalhar com imagens
+from PySide6.QtGui import QPixmap  # Importar QPixmap do PySide6
 
 class LoginWindow(QWidget):
     def __init__(self, parent=None):
@@ -1229,15 +1230,23 @@ class PosterWidget(QWidget):
         self.poster_label.setAlignment(Qt.AlignCenter)
         self.poster_label.setStyleSheet("background-color: #333; border-radius: 8px; padding: 10px; min-height: 150px;")
 
-        if poster_path and os.path.exists(poster_path):
-            pixmap = QPixmap(poster_path)
-            if not pixmap.isNull():
-                # Redimensionar a imagem para caber no widget, mantendo a proporção
-                pixmap = pixmap.scaled(150, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-                self.poster_label.setPixmap(pixmap)
+        print(f"Filme: {self.filme_nome}, Poster Path: {poster_path}")  # Log para depuração
+        if poster_path:
+            print(f"Verificando se o arquivo existe: {os.path.exists(poster_path)}")  # Log para depuração
+            if os.path.exists(poster_path):
+                pixmap = QPixmap(poster_path)
+                if not pixmap.isNull():
+                    # Redimensionar a imagem para caber no widget, mantendo a proporção
+                    pixmap = pixmap.scaled(150, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    self.poster_label.setPixmap(pixmap)
+                else:
+                    print(f"Erro: Não foi possível carregar a imagem em {poster_path}")
+                    self.poster_label.setText(f"Erro ao carregar pôster\n{self.filme_nome}")
             else:
-                self.poster_label.setText(f"Erro ao carregar pôster\n{self.filme_nome}")
+                print(f"Erro: Arquivo não encontrado em {poster_path}")
+                self.poster_label.setText(f"Pôster não encontrado\n{self.filme_nome}")
         else:
+            print(f"Erro: Caminho do pôster não definido para {self.filme_nome}")
             self.poster_label.setText(f"Pôster não encontrado\n{self.filme_nome}")
 
         self.poster_label.mousePressEvent = self.abrir_sessoes  # Conectar o clique à função abrir_sessoes
