@@ -9,6 +9,9 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 import yt_dlp
 from PyQt6.QtGui import QPixmap  # Adicionando QPixmap para trabalhar com imagens
 from PySide6.QtGui import QPixmap  # Importar QPixmap do PySide6
+import requests
+from PySide6.QtCore import QByteArray
+from PySide6.QtGui import QPixmap
 
 class LoginWindow(QWidget):
     def __init__(self, parent=None):
@@ -263,136 +266,81 @@ class CadastroForm(QDialog):
         except Exception as e:
             QMessageBox.warning(self, "Erro", f"Erro ao cadastrar: {str(e)}")
 
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QMessageBox
+from PySide6.QtCore import Qt
+
 class FilmeInfoWindow(QDialog):
-    def __init__(self, backend, usuario_id, filme_id, app_parent, parent=None):
-        super().__init__(parent)
-        self.backend = backend
-        self.usuario_id = usuario_id
+    def __init__(self, filme_id, filme_nome, backend, usuario_id, parent=None):
+        super().__init__(parent=parent)  # Inicializar o QDialog com o parent
         self.filme_id = filme_id
-        self.app_parent = app_parent  # Referência ao CinemaApp
-        self.setWindowTitle("Informações do Filme")
+        self.filme_nome = filme_nome
+        self.backend = backend
+        self.usuario_id = usuario_id  # Armazenar o usuario_id
+        self.parent = parent
+        self.setWindowTitle(f"Informações do Filme: {filme_nome}")
+        self.setGeometry(300, 300, 400, 500)
         self.init_ui()
-
-    def favoritar_filme(self):
-        sucesso, mensagem = self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
-        if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
-        else:
-            QMessageBox.critical(self, "Erro", mensagem)
-
-    def abrir_selecao_sessao(self):
-        self.sessao_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self.app_parent, self)
-        self.sessao_window.exec()
-
-    def get_youtube_video_url(self, youtube_url):
-        try:
-            ydl_opts = {
-                'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]',  # Prioriza 480p
-                'quiet': True,
-                'no_warnings': True,
-                'merge_output_format': 'mp4',  # Tenta mesclar vídeo e áudio em MP4
-                'outtmpl': '-',  # Não baixa, apenas retorna a URL
-            }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(youtube_url, download=False)
-                print(f"Formatos disponíveis: {info.get('formats', [])}")  # Depuração
-                for fmt in info.get('formats', []):
-                    if 'url' in fmt and ('video/mp4' in fmt.get('format', '') or 'video/webm' in fmt.get('format', '')):
-                        print(f"URL de vídeo encontrada: {fmt['url']}")
-                        return fmt['url']
-                print(f"Erro: Nenhuma URL de vídeo (MP4 ou WebM) encontrada para {youtube_url}")
-                return None
-        except Exception as e:
-            print(f"Erro ao extrair URL do YouTube: {str(e)}")
-            return None
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(10)
-        layout.setContentsMargins(10, 10, 10, 10)
 
+        # Obter informações do filme
         filme_info = self.backend.get_filme_info(self.filme_id)
-        title_label = QLabel(filme_info[1])
-        title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #ffffff; padding: 5px;")
-        layout.addWidget(title_label)
+        if filme_info:
+            nome = filme_info[1]
+            cinema_id = filme_info[2]
+            duracao = filme_info[3]
+            data_lancamento = filme_info[4]
+            genero = filme_info[5]
+            classificacao = filme_info[6]
+            sinopse = filme_info[7]
+            trailer_url = filme_info[8]
 
-        trailer_label = QLabel("Trailer:")
-        trailer_label.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
-        layout.addWidget(trailer_label)
-        self.video_widget = QVideoWidget()
-        self.video_widget.setFixedSize(400, 200)
-        layout.addWidget(self.video_widget)
-        self.media_player = QMediaPlayer(self)
-        self.media_player.setVideoOutput(self.video_widget)
+            # Exibir informações do filme
+            layout.addWidget(QLabel(f"<h2>{nome}</h2>"))
+            layout.addWidget(QLabel(f"<b>Gênero:</b> {genero}"))
+            layout.addWidget(QLabel(f"<b>Duração:</b> {duracao}"))
+            layout.addWidget(QLabel(f"<b>Classificação:</b> {classificacao}"))
+            layout.addWidget(QLabel(f"<b>Data de Lançamento:</b> {data_lancamento}"))
+            layout.addWidget(QLabel(f"<b>Sinopse:</b> {sinopse}"))
 
-        youtube_url = filme_info[8]  # URL do trailer do filme
-        video_url = self.get_youtube_video_url(youtube_url)
-        if video_url:
-            print(f"URL do stream: {video_url}")  # Depuração para verificar a URL
-            trailer_url = QUrl(video_url)
-            self.media_player.setSource(trailer_url)
-            self.media_player.play()
-            # Conectar ao sinal errorOccurred corretamente
-            def handle_error(error, error_string):
-                print(f"Erro ao reproduzir o vídeo: Código {error}, Mensagem: {error_string}")
-                error_label = QLabel(f"Erro ao reproduzir o trailer: {error_string}")
-                error_label.setStyleSheet("color: #ff5555; font-size: 14px;")
-                layout.addWidget(error_label)
-            self.media_player.errorOccurred.connect(handle_error)
+            # Link do trailer
+            trailer_label = QLabel(f'<a href="{trailer_url}">Assistir Trailer</a>')
+            trailer_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            trailer_label.setOpenExternalLinks(True)
+            layout.addWidget(trailer_label)
+
         else:
-            error_label = QLabel(f"Não foi possível carregar o trailer para {filme_info[1]}. Verifique a URL ou a conexão.")
-            error_label.setStyleSheet("color: #ff5555; font-size: 14px;")
-            layout.addWidget(error_label)
+            layout.addWidget(QLabel("Erro: Não foi possível carregar as informações do filme."))
 
-        # Restante do código (informações adicionais, botões, etc.)
-        info_layout = QVBoxLayout()
-        info_layout.addWidget(QLabel(f"Duração: {filme_info[3]}"))
-        info_layout.addWidget(QLabel(f"Data de Lançamento: {filme_info[4]}"))
-        info_layout.addWidget(QLabel(f"Gênero: {filme_info[5]}"))
-        info_layout.addWidget(QLabel(f"Classificação: {filme_info[6]}"))
-
-        sinopse_widget = QWidget()
-        sinopse_layout = QVBoxLayout(sinopse_widget)
-        sinopse_label = QLabel("Sinopse:")
-        sinopse_label.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
-        sinopse_text = QTextEdit(filme_info[7])
-        sinopse_text.setReadOnly(True)
-        sinopse_text.setFixedHeight(100)
-        sinopse_text.setStyleSheet("background-color: #2a2a2a; color: #ffffff; border: 1px solid #444; border-radius: 5px; padding: 5px;")
-        sinopse_layout.addWidget(sinopse_label)
-        sinopse_layout.addWidget(sinopse_text)
-        info_layout.addWidget(sinopse_widget)
-
-        layout.addLayout(info_layout)
-
-        button_layout = QHBoxLayout()
-        button_layout.setSpacing(10)
+        # Botão de Favoritar
         favoritar_btn = QPushButton("Favoritar")
         favoritar_btn.clicked.connect(self.favoritar_filme)
-        favoritar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; border-radius: 8px; padding: 8px;")
-        button_layout.addWidget(favoritar_btn)
+        layout.addWidget(favoritar_btn)
 
+        # Botão de Comprar Ingresso
         comprar_btn = QPushButton("Comprar Ingresso")
-        comprar_btn.clicked.connect(self.abrir_selecao_sessao)
-        comprar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; border-radius: 8px; padding: 8px;")
-        button_layout.addWidget(comprar_btn)
+        comprar_btn.clicked.connect(self.abrir_sessoes)
+        layout.addWidget(comprar_btn)
 
-        layout.addLayout(button_layout)
+        # Botão de Fechar
+        fechar_btn = QPushButton("Fechar")
+        fechar_btn.clicked.connect(self.close)
+        layout.addWidget(fechar_btn)
 
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #1a1a1a;
-            }
-            QLabel {
-                color: #ffffff;
-                font-size: 16px;
-            }
-            QPushButton {
-                min-width: 120px;
-            }
-        """)
-        self.setMinimumSize(400, 600)
-        self.adjustSize()
+    def favoritar_filme(self):
+        """Adiciona o filme aos favoritos."""
+        try:
+            self.backend.adicionar_favorito(self.filme_id)
+            QMessageBox.information(self, "Sucesso", f"{self.filme_nome} foi adicionado aos favoritos!")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao favoritar o filme: {str(e)}")
+
+    def abrir_sessoes(self):
+        """Abre a tela de escolha de sessões e assentos."""
+        self.sessoes_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self.parent, self)
+        self.sessoes_window.show()
+        self.close()  # Fecha a janela de informações do filme
 
 class SessaoWindow(QDialog):
     def __init__(self, backend, usuario_id, filme_id, app_parent, parent=None):
@@ -1209,13 +1157,13 @@ class CinemaApp(QMainWindow):
         self.content_layout.addWidget(perfil_widget)
 
 class PosterWidget(QWidget):
-    def __init__(self, backend, usuario_id, filme_id, filme_nome, app_parent, parent=None):
+    def __init__(self, backend, usuario_id, filme_id, filme_nome, parent=None):
         super().__init__(parent)
-        self.backend = backend
-        self.usuario_id = usuario_id
         self.filme_id = filme_id
         self.filme_nome = filme_nome
-        self.app_parent = app_parent
+        self.backend = backend
+        self.usuario_id = usuario_id  # Adicionar usuario_id para uso em SessaoWindow
+        self.parent = parent  # Garantir que o parent seja armazenado corretamente
         self.init_ui()
 
     def init_ui(self):
@@ -1223,43 +1171,67 @@ class PosterWidget(QWidget):
 
         # Obter informações do filme, incluindo o caminho do pôster
         filme_info = self.backend.get_filme_info(self.filme_id)
-        poster_path = filme_info[9] if filme_info and len(filme_info) > 9 else None  # Índice 9 é o poster_path
+        poster_url = filme_info[9] if filme_info and len(filme_info) > 9 else None  # Índice 9 é o poster_path (agora uma URL)
 
-        # Pôster clicável
         self.poster_label = QLabel()
         self.poster_label.setAlignment(Qt.AlignCenter)
         self.poster_label.setStyleSheet("background-color: #333; border-radius: 8px; padding: 10px; min-height: 150px;")
 
-        print(f"Filme: {self.filme_nome}, Poster Path: {poster_path}")  # Log para depuração
-        if poster_path:
-            print(f"Verificando se o arquivo existe: {os.path.exists(poster_path)}")  # Log para depuração
-            if os.path.exists(poster_path):
-                pixmap = QPixmap(poster_path)
+        print(f"Filme: {self.filme_nome}, Poster URL: {poster_url}")
+        if poster_url:
+            try:
+                # Baixar a imagem da URL
+                response = requests.get(poster_url, timeout=5)
+                response.raise_for_status()  # Levanta uma exceção se a requisição falhar
+                image_data = response.content
+
+                # Carregar a imagem no QPixmap
+                pixmap = QPixmap()
+                pixmap.loadFromData(QByteArray(image_data))
                 if not pixmap.isNull():
-                    # Redimensionar a imagem para caber no widget, mantendo a proporção
                     pixmap = pixmap.scaled(150, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                     self.poster_label.setPixmap(pixmap)
                 else:
-                    print(f"Erro: Não foi possível carregar a imagem em {poster_path}")
-                    self.poster_label.setText(f"Erro ao carregar pôster\n{self.filme_nome}")
-            else:
-                print(f"Erro: Arquivo não encontrado em {poster_path}")
-                self.poster_label.setText(f"Pôster não encontrado\n{self.filme_nome}")
+                    print(f"Erro: Não foi possível carregar a imagem da URL {poster_url}")
+                    self.load_default_poster()
+            except Exception as e:
+                print(f"Erro ao baixar a imagem da URL {poster_url}: {str(e)}")
+                self.load_default_poster()
         else:
-            print(f"Erro: Caminho do pôster não definido para {self.filme_nome}")
-            self.poster_label.setText(f"Pôster não encontrado\n{self.filme_nome}")
+            print(f"Erro: URL do pôster não definida para {self.filme_nome}")
+            self.load_default_poster()
 
-        self.poster_label.mousePressEvent = self.abrir_sessoes  # Conectar o clique à função abrir_sessoes
+        self.poster_label.mousePressEvent = self.abrir_info_filme  # Conectar o clique à função abrir_info_filme
         layout.addWidget(self.poster_label)
 
         # Botão "Comprar Ingresso"
         comprar_btn = QPushButton("Comprar Ingresso")
-        comprar_btn.clicked.connect(self.abrir_sessoes)
+        comprar_btn.clicked.connect(self.abrir_info_filme)  # Conectar o botão à função abrir_info_filme
         layout.addWidget(comprar_btn)
 
-    def abrir_sessoes(self, event=None):
-        sessoes_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self.app_parent, self)
-        sessoes_window.exec()
+    def load_default_poster(self):
+        """Carrega uma imagem padrão se a URL falhar."""
+        default_image_url = "https://br.web.img3.acsta.net/pictures/14/02/18/17/30/589706.jpg"  # Imagem de Shrek como fallback
+        try:
+            response = requests.get(default_image_url, timeout=5)
+            response.raise_for_status()
+            image_data = response.content
+            pixmap = QPixmap()
+            pixmap.loadFromData(QByteArray(image_data))
+            if not pixmap.isNull():
+                pixmap = pixmap.scaled(150, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.poster_label.setPixmap(pixmap)
+            else:
+                self.poster_label.setText(f"Pôster não encontrado\n{self.filme_nome}")
+        except Exception as e:
+            print(f"Erro ao carregar a imagem padrão: {str(e)}")
+            self.poster_label.setText(f"Pôster não encontrado\n{self.filme_nome}")
+
+    def abrir_info_filme(self, event=None):
+        """Abre a janela de informações do filme ao clicar no pôster ou no botão."""
+        # Criar e exibir a janela de informações do filme
+        self.filme_info_window = FilmeInfoWindow(self.filme_id, self.filme_nome, self.backend, self.parent)
+        self.filme_info_window.show()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
