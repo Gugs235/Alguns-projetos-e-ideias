@@ -1,5 +1,5 @@
 # frontend.py
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit, QMessageBox, QScrollArea, QGridLayout, QDialog, QComboBox, QListWidget, QTextEdit
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit, QMessageBox, QScrollArea, QGridLayout, QDialog, QComboBox, QListWidget, QTextEdit, QCheckBox
 from PySide6.QtCore import Qt, QSize, QUrl
 from backend import CinemaBackend
 import sys
@@ -7,6 +7,7 @@ import os
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 import yt_dlp
+from PyQt6.QtGui import QPixmap  # Adicionando QPixmap para trabalhar com imagens
 
 class LoginWindow(QWidget):
     def __init__(self, parent=None):
@@ -1206,26 +1207,50 @@ class CinemaApp(QMainWindow):
 
         self.content_layout.addWidget(perfil_widget)
 
-class PosterWidget(QLabel):
-    def __init__(self, backend, usuario_id, filme_id, filme_nome, parent=None):
+class PosterWidget(QWidget):
+    def __init__(self, backend, usuario_id, filme_id, filme_nome, app_parent, parent=None):
         super().__init__(parent)
         self.backend = backend
         self.usuario_id = usuario_id
         self.filme_id = filme_id
-        self.setText(f"Poster: {filme_nome}")
-        self.setAlignment(Qt.AlignCenter)
-        self.setStyleSheet("""
-            background-color: #333;
-            border-radius: 8px;
-            padding: 10px;
-            min-width: 150px;
-            min-height: 200px;
-        """)
-        self.mousePressEvent = self.on_click
+        self.filme_nome = filme_nome
+        self.app_parent = app_parent
+        self.init_ui()
 
-    def on_click(self, event):
-        info_window = FilmeInfoWindow(self.backend, self.usuario_id, self.filme_id, self.parent(), self.parent())
-        info_window.exec()
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+
+        # Obter informações do filme, incluindo o caminho do pôster
+        filme_info = self.backend.get_filme_info(self.filme_id)
+        poster_path = filme_info[9] if filme_info and len(filme_info) > 9 else None  # Índice 9 é o poster_path
+
+        # Pôster clicável
+        self.poster_label = QLabel()
+        self.poster_label.setAlignment(Qt.AlignCenter)
+        self.poster_label.setStyleSheet("background-color: #333; border-radius: 8px; padding: 10px; min-height: 150px;")
+
+        if poster_path and os.path.exists(poster_path):
+            pixmap = QPixmap(poster_path)
+            if not pixmap.isNull():
+                # Redimensionar a imagem para caber no widget, mantendo a proporção
+                pixmap = pixmap.scaled(150, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.poster_label.setPixmap(pixmap)
+            else:
+                self.poster_label.setText(f"Erro ao carregar pôster\n{self.filme_nome}")
+        else:
+            self.poster_label.setText(f"Pôster não encontrado\n{self.filme_nome}")
+
+        self.poster_label.mousePressEvent = self.abrir_sessoes  # Conectar o clique à função abrir_sessoes
+        layout.addWidget(self.poster_label)
+
+        # Botão "Comprar Ingresso"
+        comprar_btn = QPushButton("Comprar Ingresso")
+        comprar_btn.clicked.connect(self.abrir_sessoes)
+        layout.addWidget(comprar_btn)
+
+    def abrir_sessoes(self, event=None):
+        sessoes_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self.app_parent, self)
+        sessoes_window.exec()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

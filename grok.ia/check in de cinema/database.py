@@ -63,6 +63,7 @@ class CinemaDatabase:
                 classificacao VARCHAR(255) NOT NULL,
                 sinopse TEXT NOT NULL,
                 trailer_url VARCHAR(255) NOT NULL,
+                poster_path VARCHAR(255),  -- Novo campo para o caminho do pôster
                 FOREIGN KEY (cinema_id) REFERENCES cinemas(id)
             )
             """,
@@ -118,10 +119,16 @@ class CinemaDatabase:
         # Verificar a estrutura da tabela filmes
         self.cursor.execute("SHOW COLUMNS FROM filmes")
         colunas = [coluna[0] for coluna in self.cursor.fetchall()]
-        colunas_esperadas = ['id', 'nome', 'cinema_id', 'duracao', 'data_lancamento', 'genero', 'classificacao', 'sinopse', 'trailer_url']
+        colunas_esperadas = ['id', 'nome', 'cinema_id', 'duracao', 'data_lancamento', 'genero', 'classificacao', 'sinopse', 'trailer_url', 'poster_path']
         for coluna in colunas_esperadas:
             if coluna not in colunas:
-                raise Exception(f"Coluna '{coluna}' não encontrada na tabela 'filmes'. Estrutura do banco de dados está incorreta.")
+                # Adicionar a coluna poster_path se ela não existir
+                if coluna == 'poster_path':
+                    self.cursor.execute("ALTER TABLE filmes ADD COLUMN poster_path VARCHAR(255)")
+                    self.conn.commit()
+                    print("Coluna 'poster_path' adicionada à tabela 'filmes'.")
+                else:
+                    raise Exception(f"Coluna '{coluna}' não encontrada na tabela 'filmes'. Estrutura do banco de dados está incorreta.")
         print("Estrutura da tabela 'filmes' verificada com sucesso.")
 
         # Verificar a estrutura da tabela sessoes
@@ -224,58 +231,58 @@ class CinemaDatabase:
             self.conn.commit()  # Commit após inserir os cinemas
             print(f"Inseridos {len(cinemas)} cinemas.")
 
-            # Filmes
+            # Filmes com o novo campo poster_path
             filmes = [
                 ("Fé para o Impossível", 1, "01:40:00", "2023-08-15", "Drama", "12", 
-                "Um jovem enfrenta desafios para alcançar um milagre.", "https://www.youtube.com/watch?v=b7vP1opVt5A"),
+                "Um jovem enfrenta desafios para alcançar um milagre.", "https://www.youtube.com/watch?v=b7vP1opVt5A", "posters/1.jpg"),
                 ("Meu Malvado Favorito 1", 1, "01:35:00", "2010-07-09", "Animação", "Livre", 
-                "Gru, um vilão, adota três meninas e descobre o amor.", "https://www.youtube.com/watch?v=sUkZFetWYY0"),
+                "Gru, um vilão, adota três meninas e descobre o amor.", "https://www.youtube.com/watch?v=sUkZFetWYY0", "posters/2.jpg"),
                 ("Meu Malvado Favorito 2", 1, "01:38:00", "2013-07-03", "Animação", "Livre", 
-                "Gru é recrutado para salvar o mundo.", "https://youtu.be/gi2QWNZ9jms?si=DbPr2-JSSfbGU4ML"),  # URL corrigida
+                "Gru é recrutado para salvar o mundo.", "https://youtu.be/gi2QWNZ9jms?si=DbPr2-JSSfbGU4ML", "posters/3.jpg"),
                 ("Meu Malvado Favorito 3", 2, "01:36:00", "2017-06-29", "Animação", "Livre", 
-                "Gru conhece seu irmão gêmeo Dru.", "https://www.youtube.com/watch?v=e5e5kFPg2kA"),
+                "Gru conhece seu irmão gêmeo Dru.", "https://www.youtube.com/watch?v=e5e5kFPg2kA", "posters/4.jpg"),
                 ("Meu Malvado Favorito 4", 2, "01:40:00", "2024-07-03", "Animação", "Livre", 
-                "Gru enfrenta um novo vilão com sua família.", "https://www.youtube.com/watch?v=qQlr9-rXrCg"),
+                "Gru enfrenta um novo vilão com sua família.", "https://www.youtube.com/watch?v=qQlr9-rXrCg", "posters/5.jpg"),
                 ("Minions 1", 3, "01:31:00", "2015-07-09", "Animação", "Livre", 
-                "Os Minions buscam um novo mestre do mal.", "https://www.youtube.com/watch?v=eisKxhjBnZ0"),
+                "Os Minions buscam um novo mestre do mal.", "https://www.youtube.com/watch?v=eisKxhjBnZ0", "posters/6.jpg"),
                 ("Minions 2", 3, "01:27:00", "2022-07-01", "Animação", "Livre", 
-                "Os Minions ajudam Gru a se tornar um vilão.", "https://www.youtube.com/watch?v=6DxjJzmYsXo"),
+                "Os Minions ajudam Gru a se tornar um vilão.", "https://www.youtube.com/watch?v=6DxjJzmYsXo", "posters/7.jpg"),
                 ("Shrek - 2001", 1, "01:30:00", "2001-05-18", "Animação", "Livre", 
-                "Shrek, um ogro, tenta resgatar uma princesa.", "https://www.youtube.com/watch?v=CwXOrW2rjWY"),
+                "Shrek, um ogro, tenta resgatar uma princesa.", "https://www.youtube.com/watch?v=CwXOrW2rjWY", "posters/8.jpg"),
                 ("Shrek 2 - 2004", 1, "01:33:00", "2004-05-19", "Animação", "Livre", 
-                "Shrek conhece os pais de Fiona.", "https://www.youtube.com/watch?v=5Z0h0s2WJaQ"),
+                "Shrek conhece os pais de Fiona.", "https://www.youtube.com/watch?v=5Z0h0s2WJaQ", "posters/9.jpg"),
                 ("Shrek Terceiro - 2007", 2, "01:33:00", "2007-05-18", "Animação", "Livre", 
-                "Shrek precisa encontrar um novo rei para o trono.", "https://www.youtube.com/watch?v=PhS7XAv1t1k"),
+                "Shrek precisa encontrar um novo rei para o trono.", "https://www.youtube.com/watch?v=PhS7XAv1t1k", "posters/10.jpg"),
                 ("Shrek no Natal", 2, "00:30:00", "2007-11-28", "Animação", "Livre", 
-                "Shrek tenta celebrar o Natal pela primeira vez.", "https://www.youtube.com/watch?v=9xS9gM1gms0"),
+                "Shrek tenta celebrar o Natal pela primeira vez.", "https://www.youtube.com/watch?v=9xS9gM1gms0", "posters/11.jpg"),
                 ("Shrek para Sempre - 2010", 3, "01:33:00", "2010-05-21", "Animação", "Livre", 
-                "Shrek faz um pacto que muda sua realidade.", "https://www.youtube.com/watch?v=SLMiCGl4Sfs"),
+                "Shrek faz um pacto que muda sua realidade.", "https://www.youtube.com/watch?v=SLMiCGl4Sfs", "posters/12.jpg"),
                 ("O Susto de Shrek - 2010", 3, "00:30:00", "2010-10-28", "Animação", "Livre", 
-                "Shrek organiza uma competição de sustos no Halloween.", "https://www.youtube.com/watch?v=9xS9gM1gms0"),
+                "Shrek organiza uma competição de sustos no Halloween.", "https://www.youtube.com/watch?v=9xS9gM1gms0", "posters/13.jpg"),
                 ("Shrek 5 - 2026", 1, "01:35:00", "2026-05-20", "Animação", "Livre", 
-                "Shrek retorna para uma nova aventura.", "https://www.youtube.com/watch?v=CwXOrW2rjWY"),
+                "Shrek retorna para uma nova aventura.", "https://www.youtube.com/watch?v=CwXOrW2rjWY", "posters/14.jpg"),
                 ("Capitão América: Admirável Mundo Novo", 2, "02:10:00", "2025-02-14", "Ação", "14", 
-                "Sam Wilson enfrenta novas ameaças como Capitão América.", "https://www.youtube.com/watch?v=O_A8HdCDaWM"),
+                "Sam Wilson enfrenta novas ameaças como Capitão América.", "https://www.youtube.com/watch?v=O_A8HdCDaWM", "posters/15.jpg"),
                 ("Sonic 1", 3, "01:39:00", "2020-02-14", "Aventura", "Livre", 
-                "Sonic se junta a um amigo humano para deter o Dr. Robotnik.", "https://www.youtube.com/watch?v=szby7ZHLnkA"),
+                "Sonic se junta a um amigo humano para deter o Dr. Robotnik.", "https://www.youtube.com/watch?v=szby7ZHLnkA", "posters/16.jpg"),
                 ("Sonic 2", 1, "02:02:00", "2022-04-08", "Aventura", "Livre", 
-                "Sonic enfrenta Knuckles e o Dr. Robotnik.", "https://www.youtube.com/watch?v=47r8FXYZWNU"),
+                "Sonic enfrenta Knuckles e o Dr. Robotnik.", "https://www.youtube.com/watch?v=47r8FXYZWNU", "poster_Sonic2.jpg"),
                 ("Sonic 3", 2, "02:05:00", "2024-12-20", "Aventura", "Livre", 
-                "Sonic e amigos lutam contra Shadow.", "https://www.youtube.com/watch?v=qSu6iXzF4oc"),
+                "Sonic e amigos lutam contra Shadow.", "https://www.youtube.com/watch?v=qSu6iXzF4oc", "poster_Sonic3.jpg"),
                 ("Vingadores Ultimato", 3, "03:01:00", "2019-04-26", "Ação", "12", 
-                "Os Vingadores tentam reverter o estalo de Thanos.", "https://www.youtube.com/watch?v=TcMBFSGVi1c"),
+                "Os Vingadores tentam reverter o estalo de Thanos.", "https://www.youtube.com/watch?v=TcMBFSGVi1c", "poster_VingadoresUltimato.jpg"),
                 ("Wicked", 1, "02:30:00", "2024-11-27", "Musical", "10", 
-                "A história de Elphaba e Glinda antes de O Mágico de Oz.", "https://www.youtube.com/watch?v=F1dvwe-d0uE"),
+                "A história de Elphaba e Glinda antes de O Mágico de Oz.", "https://www.youtube.com/watch?v=F1dvwe-d0uE", "poster_Wicked.jpg"),
                 ("Fragmentados", 2, "01:52:00", "2016-09-22", "Suspense", "16", 
-                "Três personalidades de um homem sequestram uma jovem.", "https://www.youtube.com/watch?v=84TouqfIsiI"),
+                "Três personalidades de um homem sequestram uma jovem.", "https://www.youtube.com/watch?v=84TouqfIsiI", "posters/21.jpg"),
                 ("Telefone Preto", 3, "01:43:00", "2022-06-24", "Terror", "16", 
-                "Uma criança sequestrada recebe ajuda de vítimas do passado.", "https://www.youtube.com/watch?v=A1DmL8tDaoA"),
+                "Uma criança sequestrada recebe ajuda de vítimas do passado.", "https://www.youtube.com/watch?v=A1DmL8tDaoA", "poster_TelefonePreto.jpg"),
                 ("Invocação do Mal", 1, "01:52:00", "2013-07-19", "Terror", "16", 
-                "Investigadores paranormais enfrentam uma entidade demoníaca.", "https://www.youtube.com/watch?v=k10ETZ41q5o"),
+                "Investigadores paranormais enfrentam uma entidade demoníaca.", "https://www.youtube.com/watch?v=k10ETZ41q5o", "posters/23.jpg"),
             ]
-            for filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url in filmes:
-                self.cursor.execute("INSERT INTO filmes (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
-                                (filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url))
+            for filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path in filmes:
+                self.cursor.execute("INSERT INTO filmes (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                                (filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path))
             print(f"Inseridos {len(filmes)} filmes.")
 
             # Sessões

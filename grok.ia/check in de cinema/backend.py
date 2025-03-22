@@ -58,13 +58,13 @@ class CinemaBackend:
         self.conn.commit()
 
     def get_filmes_all(self):
-        self.cursor.execute("SELECT * FROM filmes")
+        self.cursor.execute("SELECT id, nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path FROM filmes")
         filmes = self.cursor.fetchall()
         print(f"Filmes encontrados no banco: {len(filmes)}")
         return filmes
 
     def get_filme_info(self, filme_id):
-        self.cursor.execute("SELECT * FROM filmes WHERE id = %s", (filme_id,))
+        self.cursor.execute("SELECT id, nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path FROM filmes WHERE id = %s", (filme_id,))
         return self.cursor.fetchone()
 
     def get_sessoes_info(self, filme_id):
@@ -128,7 +128,7 @@ class CinemaBackend:
         self.conn.commit()
 
     def get_favoritos(self, usuario_id):
-        self.cursor.execute("SELECT f.* FROM filmes f JOIN favoritos fav ON f.id = fav.filme_id WHERE fav.usuario_id = %s", (usuario_id,))
+        self.cursor.execute("SELECT f.id, f.nome, f.cinema_id, f.duracao, f.data_lancamento, f.genero, f.classificacao, f.sinopse, f.trailer_url, f.poster_path FROM filmes f JOIN favoritos fav ON f.id = fav.filme_id WHERE fav.usuario_id = %s", (usuario_id,))
         return self.cursor.fetchall()
 
     def get_compras(self, usuario_id):
