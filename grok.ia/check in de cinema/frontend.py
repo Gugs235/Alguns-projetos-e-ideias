@@ -650,6 +650,20 @@ class CompraWindow(QDialog):
         # Botão Pagar (inicialmente desabilitado para PIX e Boleto)
         self.pagar_btn = QPushButton("Pagar")
         self.pagar_btn.clicked.connect(self.confirmar_pagamento)
+        self.pagar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                border: 1px solid #444;
+                border-radius: 8px;
+                padding: 8px;
+            }
+            QPushButton:disabled {
+                background-color: #a34045;
+                opacity: 80;  /* Torna o botão opaco quando desabilitado */
+                color: #808080;  /* Cor do texto mais clara para indicar desabilitado */
+            }
+        """)
         self.layout.addWidget(self.pagar_btn)
 
         self.setStyleSheet("""
@@ -660,15 +674,12 @@ class CompraWindow(QDialog):
                 color: #ffffff;
                 font-size: 16px;
             }
-            QLineEdit, QComboBox, QPushButton {
+            QLineEdit, QComboBox {
                 background-color: #2a2a2a;
                 color: #ffffff;
                 border: 1px solid #444;
                 border-radius: 8px;
                 padding: 8px;
-            }
-            QPushButton {
-                background-color: #e50914;
             }
         """)
         self.setFixedSize(400, 500)
@@ -752,6 +763,7 @@ class CompraWindow(QDialog):
             QMessageBox.information(self, "Sucesso", mensagem)
             if not self.voltar_btn:
                 self.voltar_btn = QPushButton("Voltar para a Home")
+                self.voltar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; border-radius: 8px; padding: 8px;")
                 self.voltar_btn.clicked.connect(self.voltar_home)
                 self.layout.addWidget(self.voltar_btn)
         else:
@@ -761,16 +773,32 @@ class CompraWindow(QDialog):
         print("Fechando CompraWindow")
         self.close()
 
+        # Fechar todas as janelas intermediárias (como SessaoWindow)
         parent = self.parent()
         while parent and isinstance(parent, QDialog):
             print(f"Fechando janela pai: {type(parent).__name__}")
             parent.close()
             parent = parent.parentWidget()
 
+        # Validar se app_parent é válido
+        if not self.app_parent:
+            print("Erro: app_parent não está definido!")
+            return
+
+        # Garantir que a janela principal (CinemaApp) seja restaurada e exibida
+        print("Restaurando janela principal")
+        self.app_parent.show()  # Exibir a janela principal
+        self.app_parent.showNormal()  # Restaura a janela principal se estiver minimizada
+        self.app_parent.activateWindow()  # Traz a janela para o foco
+        self.app_parent.raise_()  # Garante que a janela esteja na frente
+
+        # Exibir a tela Home
         print("Exibindo Home")
-        if hasattr(self.app_parent, 'clear_content'):
+        if hasattr(self.app_parent, 'clear_content') and hasattr(self.app_parent, 'show_home'):
             self.app_parent.clear_content()
             self.app_parent.show_home()
+        else:
+            print("Erro: app_parent não possui os métodos clear_content ou show_home!")
 
 class CartaoWindow(QDialog):
     def __init__(self, backend, usuario_id, parent=None):
@@ -1087,12 +1115,14 @@ class CinemaApp(QMainWindow):
                 btn.setEnabled(True)
 
     def clear_content(self):
+        print("Limpando conteúdo atual")
         for i in reversed(range(self.content_layout.count())):
             widget = self.content_layout.itemAt(i).widget()
             if widget:
                 widget.deleteLater()
 
     def show_home(self):
+        print("Chamando show_home")
         self.clear_content()
         scroll = QScrollArea()
         scroll_content = QWidget()
@@ -1113,6 +1143,7 @@ class CinemaApp(QMainWindow):
         scroll_layout.addWidget(filmes_section)
 
         self.content_layout.addWidget(scroll)
+        print("Tela Home exibida com sucesso")
 
     def show_favoritos(self):
         self.clear_content()
