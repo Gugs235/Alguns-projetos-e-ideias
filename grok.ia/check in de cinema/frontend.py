@@ -161,21 +161,107 @@ class LoginForm(QDialog):
 
         # Validação dos campos
         if not email:
-            QMessageBox.warning(self, "Erro", "O campo Email é obrigatório!")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Erro")
+            msg_box.setText("O campo Email é obrigatório!")
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
+            msg_box.exec()
             return
+
         if not senha:
-            QMessageBox.warning(self, "Erro", "O campo Senha é obrigatório!")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Erro")
+            msg_box.setText("O campo Senha é obrigatório!")
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
+            msg_box.exec()
             return
 
         # Tentar fazer login
         usuario = self.backend.login_usuario(email, senha)
         if usuario:
             usuario_id, nome = usuario
-            QMessageBox.information(self, "Sucesso", f"Bem-vindo, {nome}!")
+            # Criar e estilizar o QMessageBox para a mensagem de sucesso
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Sucesso")
+            msg_box.setText(f"Bem-vindo, {nome}!")
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
+            msg_box.exec()
             self.close()
             self.app_parent.show_main_window(usuario_id, nome)
         else:
-            QMessageBox.warning(self, "Erro", "Email ou senha incorretos!")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Erro")
+            msg_box.setText("Email ou senha incorretos!")
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
+            msg_box.exec()
 
 class CadastroForm(QDialog):
     def __init__(self, backend, app_parent, parent=None):
@@ -297,6 +383,9 @@ class FilmeInfoWindow(QDialog):
             trailer_url = filme_info[8]
 
             # Exibir informações do filme
+            # mudando o backgrond
+            self.setStyleSheet("background-color: #1a1a1a;")   
+
             layout.addWidget(QLabel(f"<h2>{nome}</h2>"))
             layout.addWidget(QLabel(f"<b>Gênero:</b> {genero}"))
             layout.addWidget(QLabel(f"<b>Duração:</b> {duracao}"))
@@ -315,26 +404,76 @@ class FilmeInfoWindow(QDialog):
 
         # Botão de Favoritar
         favoritar_btn = QPushButton("Favoritar")
+        favoritar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
         favoritar_btn.clicked.connect(self.favoritar_filme)
         layout.addWidget(favoritar_btn)
 
         # Botão de Comprar Ingresso
         comprar_btn = QPushButton("Comprar Ingresso")
+        comprar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
         comprar_btn.clicked.connect(self.abrir_sessoes)
         layout.addWidget(comprar_btn)
 
         # Botão de Fechar
         fechar_btn = QPushButton("Fechar")
+        fechar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
         fechar_btn.clicked.connect(self.close)
         layout.addWidget(fechar_btn)
 
     def favoritar_filme(self):
         """Adiciona o filme aos favoritos."""
         try:
-            self.backend.adicionar_favorito(self.filme_id)
-            QMessageBox.information(self, "Sucesso", f"{self.filme_nome} foi adicionado aos favoritos!")
+            self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
+
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Sucesso")
+            msg_box.setText(f"{self.filme_nome} foi adicionado aos favoritos!")
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #ffffff;
+                    color: #000000;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #999999;
+                }
+            """)
+            msg_box.exec()
+
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao favoritar o filme: {str(e)}")
+
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Erro")
+            msg_box.setIcon(Warning)
+            msg_box.setText(f"Erro ao favoritar o filme: {str(e)}")
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #ffffff;
+                    color: #000000;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #999999;
+                }
+            """)
+            msg_box.exec()
 
     def abrir_sessoes(self):
         """Abre a tela de escolha de sessões e assentos."""
@@ -384,7 +523,21 @@ class SessaoWindow(QDialog):
             # Botões
             btn_layout = QHBoxLayout()
             self.btn_confirmar = QPushButton("Confirmar", self)
-            self.btn_confirmar.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px; border-radius: 5px;")
+            self.btn_confirmar.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: #ffffff;
+                border-radius: 5px;
+                padding: 10px;
+            }
+            QPushButton:disabled {
+                background: #74ad76;
+                color: #ffffff;
+                opacity: 80;  /* Torna o botão opaco quando desabilitado */
+                color: #808080;  /* Cor do texto mais clara para indicar desabilitado */
+            }
+        """)
+
             self.btn_confirmar.clicked.connect(self.confirmar_sessao)
             self.btn_confirmar.setEnabled(False)  # Desabilitado até selecionar assentos
             btn_layout.addWidget(self.btn_confirmar)
@@ -675,7 +828,30 @@ class CompraWindow(QDialog):
         if pix_window.exec() == QDialog.Accepted:
             self.pix_confirmado = True
             self.pagar_btn.setEnabled(True)  # Habilitar o botão "Pagar" após gerar o PIX
-            QMessageBox.information(self, "PIX Gerado", "QR Code gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
+
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("PIX Gerado")
+            msg_box.setText("QR Code gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #ffffff;
+                    color: #000000;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #999999;
+                }
+            """)
+            msg_box.exec()
+
         else:
             self.pagar_btn.setEnabled(False)  # Desabilitar se o usuário cancelar
 
@@ -1204,10 +1380,13 @@ class PosterWidget(QWidget):
         self.poster_label.mousePressEvent = self.abrir_info_filme  # Conectar o clique à função abrir_info_filme
         layout.addWidget(self.poster_label)
 
-        # Botão "Comprar Ingresso"
-        comprar_btn = QPushButton("Comprar Ingresso")
-        comprar_btn.clicked.connect(self.abrir_info_filme)  # Conectar o botão à função abrir_info_filme
-        layout.addWidget(comprar_btn)
+        # Substituir o botão "Comprar Ingresso" pelo nome do filme em branco e negrito
+        nome_filme_label = QLabel(self.filme_nome)
+        nome_filme_label.setStyleSheet("color: #ffffff; font-weight: bold; text-align: center;")
+        nome_filme_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(nome_filme_label)
+
+        self.setLayout(layout)  # Garantir que o layout seja definido
 
     def load_default_poster(self):
         """Carrega uma imagem padrão se a URL falhar."""
@@ -1230,7 +1409,7 @@ class PosterWidget(QWidget):
     def abrir_info_filme(self, event=None):
         """Abre a janela de informações do filme ao clicar no pôster ou no botão."""
         # Criar e exibir a janela de informações do filme
-        self.filme_info_window = FilmeInfoWindow(self.filme_id, self.filme_nome, self.backend, self.parent)
+        self.filme_info_window = FilmeInfoWindow(self.filme_id, self.filme_nome, self.backend, self.usuario_id, self.parent)
         self.filme_info_window.show()
 
 if __name__ == "__main__":
