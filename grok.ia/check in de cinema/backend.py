@@ -58,13 +58,13 @@ class CinemaBackend:
         self.conn.commit()
 
     def get_filmes_all(self):
-        self.cursor.execute("SELECT id, nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path FROM filmes")
+        self.cursor.execute("SELECT id, nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data FROM filmes")
         filmes = self.cursor.fetchall()
         print(f"Filmes encontrados no banco: {len(filmes)}")
         return filmes
 
     def get_filme_info(self, filme_id):
-        self.cursor.execute("SELECT id, nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path FROM filmes WHERE id = %s", (filme_id,))
+        self.cursor.execute("SELECT id, nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data FROM filmes WHERE id = %s", (filme_id,))
         return self.cursor.fetchone()
 
     def get_sessoes_info(self, filme_id):

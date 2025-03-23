@@ -81,6 +81,21 @@ class CinemaDatabase:
             )
             """,
             """
+            CREATE TABLE IF NOT EXISTS filmes (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nome VARCHAR(255) NOT NULL,
+                cinema_id INT,
+                duracao TIME NOT NULL,
+                data_lancamento DATE NOT NULL,
+                genero VARCHAR(255) NOT NULL,
+                classificacao VARCHAR(255) NOT NULL,
+                sinopse TEXT NOT NULL,
+                trailer_url VARCHAR(255) NOT NULL,
+                poster_data MEDIUMBLOB,  -- Novo campo para armazenar os dados binários da imagem
+                FOREIGN KEY (cinema_id) REFERENCES cinemas(id)
+            )
+            """,
+            """
             CREATE TABLE IF NOT EXISTS assentos (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 sessao_id INT,
@@ -114,22 +129,21 @@ class CinemaDatabase:
         ]
         for tabela in tabelas:
             self.cursor.execute(tabela)
-        self.conn.commit()
+            self.conn.commit()
 
-        # Verificar a estrutura da tabela filmes
-        self.cursor.execute("SHOW COLUMNS FROM filmes")
-        colunas = [coluna[0] for coluna in self.cursor.fetchall()]
-        colunas_esperadas = ['id', 'nome', 'cinema_id', 'duracao', 'data_lancamento', 'genero', 'classificacao', 'sinopse', 'trailer_url', 'poster_path']
-        for coluna in colunas_esperadas:
-            if coluna not in colunas:
-                # Adicionar a coluna poster_path se ela não existir
-                if coluna == 'poster_path':
-                    self.cursor.execute("ALTER TABLE filmes ADD COLUMN poster_path VARCHAR(255)")
-                    self.conn.commit()
-                    print("Coluna 'poster_path' adicionada à tabela 'filmes'.")
-                else:
-                    raise Exception(f"Coluna '{coluna}' não encontrada na tabela 'filmes'. Estrutura do banco de dados está incorreta.")
-        print("Estrutura da tabela 'filmes' verificada com sucesso.")
+            # Verificar a estrutura da tabela filmes
+            self.cursor.execute("SHOW COLUMNS FROM filmes")
+            colunas = [coluna[0] for coluna in self.cursor.fetchall()]
+            colunas_esperadas = ['id', 'nome', 'cinema_id', 'duracao', 'data_lancamento', 'genero', 'classificacao', 'sinopse', 'trailer_url', 'poster_data']
+            for coluna in colunas_esperadas:
+                if coluna not in colunas:
+                    if coluna == 'poster_data':
+                        self.cursor.execute("ALTER TABLE filmes ADD COLUMN poster_data MEDIUMBLOB")
+                        self.conn.commit()
+                        print("Coluna 'poster_data' adicionada à tabela 'filmes'.")
+                    else:
+                        raise Exception(f"Coluna '{coluna}' não encontrada na tabela 'filmes'. Estrutura do banco de dados está incorreta.")
+            print("Estrutura da tabela 'filmes' verificada com sucesso.")
 
         # Verificar a estrutura da tabela sessoes
         self.cursor.execute("SHOW COLUMNS FROM sessoes")
@@ -213,6 +227,7 @@ class CinemaDatabase:
         print("Estrutura da tabela 'favoritos' verificada com sucesso.")
 
     def inserir_dados_iniciais(self):
+        import requests  # Adicionar import para baixar imagens
         # Verificar se já existem dados na tabela cinemas
         self.cursor.execute("SELECT COUNT(*) FROM cinemas")
         count = self.cursor.fetchone()[0]
@@ -228,7 +243,7 @@ class CinemaDatabase:
             ]
             for cinema in cinemas:
                 self.cursor.execute("INSERT INTO cinemas (nome) VALUES (%s)", (cinema,))
-            self.conn.commit()  # Commit após inserir os cinemas
+            self.conn.commit()
             print(f"Inseridos {len(cinemas)} cinemas.")
 
             # Filmes com o novo campo poster_path
@@ -304,9 +319,22 @@ class CinemaDatabase:
                 "Investigadores paranormais enfrentam uma entidade demoníaca.", "https://www.youtube.com/watch?v=k10ETZ41q5o", 
                 "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPTyYBnPwo2Ni0Wj81VSngSgChiKjh44bN2Q&s"),
             ]
-            for filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path in filmes:
-                self.cursor.execute("INSERT INTO filmes (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
-                                (filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_path))
+
+            for filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_url in filmes:
+                # Baixar a imagem da URL
+                poster_data = None
+                try:
+                    response = requests.get(poster_url, timeout=5)
+                    response.raise_for_status()
+                    poster_data = response.content  # Dados binários da imagem
+                except Exception as e:
+                    print(f"Erro ao baixar pôster de {filme}: {str(e)}")
+                    continue  # Pula este filme se o download falhar
+
+                self.cursor.execute("""
+                    INSERT INTO filmes (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data))
             print(f"Inseridos {len(filmes)} filmes.")
 
             # Sessões

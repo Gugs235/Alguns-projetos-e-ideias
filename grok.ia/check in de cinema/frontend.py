@@ -1345,48 +1345,43 @@ class PosterWidget(QWidget):
     def init_ui(self):
         layout = QVBoxLayout(self)
 
-        # Obter informações do filme, incluindo o caminho do pôster
+        # Obter informações do filme, incluindo os dados binários do pôster
         filme_info = self.backend.get_filme_info(self.filme_id)
-        poster_url = filme_info[9] if filme_info and len(filme_info) > 9 else None  # Índice 9 é o poster_path (agora uma URL)
+        poster_data = filme_info[9] if filme_info and len(filme_info) > 9 else None  # Índice 9 é o poster_data
 
         self.poster_label = QLabel()
         self.poster_label.setAlignment(Qt.AlignCenter)
         self.poster_label.setStyleSheet("background-color: #333; border-radius: 8px; padding: 10px; min-height: 150px;")
 
-        print(f"Filme: {self.filme_nome}, Poster URL: {poster_url}")
-        if poster_url:
+        print(f"Filme: {self.filme_nome}, Poster Data: {'Presente' if poster_data else 'Ausente'}")
+        if poster_data:
             try:
-                # Baixar a imagem da URL
-                response = requests.get(poster_url, timeout=5)
-                response.raise_for_status()  # Levanta uma exceção se a requisição falhar
-                image_data = response.content
-
-                # Carregar a imagem no QPixmap
+                # Carregar a imagem a partir dos dados binários
                 pixmap = QPixmap()
-                pixmap.loadFromData(QByteArray(image_data))
+                pixmap.loadFromData(poster_data)  # Carrega diretamente os bytes
                 if not pixmap.isNull():
                     pixmap = pixmap.scaled(150, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                     self.poster_label.setPixmap(pixmap)
                 else:
-                    print(f"Erro: Não foi possível carregar a imagem da URL {poster_url}")
+                    print(f"Erro: Dados binários inválidos para o filme {self.filme_nome}")
                     self.load_default_poster()
             except Exception as e:
-                print(f"Erro ao baixar a imagem da URL {poster_url}: {str(e)}")
+                print(f"Erro ao carregar dados do pôster de {self.filme_nome}: {str(e)}")
                 self.load_default_poster()
         else:
-            print(f"Erro: URL do pôster não definida para {self.filme_nome}")
+            print(f"Erro: Dados do pôster não disponíveis para {self.filme_nome}")
             self.load_default_poster()
 
         self.poster_label.mousePressEvent = self.abrir_info_filme  # Conectar o clique à função abrir_info_filme
         layout.addWidget(self.poster_label)
 
-        # Substituir o botão "Comprar Ingresso" pelo nome do filme em branco e negrito
+        # Nome do filme em branco e negrito
         nome_filme_label = QLabel(self.filme_nome)
         nome_filme_label.setStyleSheet("color: #ffffff; font-weight: bold; text-align: center;")
         nome_filme_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(nome_filme_label)
 
-        self.setLayout(layout)  # Garantir que o layout seja definido
+        self.setLayout(layout)
 
     def load_default_poster(self):
         """Carrega uma imagem padrão se a URL falhar."""
