@@ -28,7 +28,7 @@ class LoginWindow(QWidget):
         layout = QVBoxLayout(self)
 
         # Logo e Nome da Empresa
-        logo = QLabel("🎬 PobreCinema")
+        logo = QLabel("🎬 PobreVision")
         logo.setStyleSheet("font-size: 40px; color: #e50914; font-weight: bold; padding: 20px;")
         layout.addWidget(logo)
 
@@ -48,7 +48,7 @@ class LoginWindow(QWidget):
         layout.addLayout(cards_layout)
 
         # Texto de Boas-Vindas
-        welcome_text = QLabel("Bem-vindo ao PobreCinema! Faça login ou cadastre-se para comprar ingressos.")
+        welcome_text = QLabel("Bem-vindo ao PobreVision! Faça login ou cadastre-se para comprar ingressos.")
         welcome_text.setStyleSheet("font-size: 16px; color: #ffffff; padding: 10px;")
         layout.addWidget(welcome_text)
 
@@ -1109,7 +1109,7 @@ class BoletoWindow(QDialog):
 class CinemaApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Cinema Check-in - PobreCinema")
+        self.setWindowTitle("Cinema Check-in - PobreVision")
         self.backend = CinemaBackend()
         self.init_ui()
 
