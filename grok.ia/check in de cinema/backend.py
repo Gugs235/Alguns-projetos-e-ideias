@@ -128,7 +128,12 @@ class CinemaBackend:
         self.conn.commit()
 
     def get_favoritos(self, usuario_id):
-        self.cursor.execute("SELECT f.id, f.nome, f.cinema_id, f.duracao, f.data_lancamento, f.genero, f.classificacao, f.sinopse, f.trailer_url, f.poster_path FROM filmes f JOIN favoritos fav ON f.id = fav.filme_id WHERE fav.usuario_id = %s", (usuario_id,))
+        self.cursor.execute("""
+            SELECT f.id, f.nome, f.cinema_id, f.duracao, f.data_lancamento, f.genero, f.classificacao, f.sinopse, f.trailer_url, f.poster_data 
+            FROM filmes f 
+            JOIN favoritos fav ON f.id = fav.filme_id 
+            WHERE fav.usuario_id = %s
+        """, (usuario_id,))
         return self.cursor.fetchall()
 
     def get_compras(self, usuario_id):
