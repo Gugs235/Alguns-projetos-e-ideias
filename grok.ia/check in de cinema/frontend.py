@@ -7,7 +7,6 @@ import os
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 import yt_dlp
-from PyQt6.QtGui import QPixmap  # Adicionando QPixmap para trabalhar com imagens
 from PySide6.QtGui import QPixmap  # Importar QPixmap do PySide6
 import requests
 from PySide6.QtCore import QByteArray
@@ -1285,7 +1284,9 @@ class CinemaApp(QMainWindow):
         favoritos_layout.addWidget(QLabel("Filmes Favoritados"))
         grid_favoritos = QGridLayout()
         favoritos = self.backend.get_favoritos(self.usuario_id)
+        print(f"Exibindo favoritos: {len(favoritos)} filmes encontrados")
         for idx, filme in enumerate(favoritos):
+            print(f"Adicionando filme ao grid: {filme[1]} (ID: {filme[0]})")
             poster = PosterWidget(self.backend, self.usuario_id, filme[0], filme[1], self)
             grid_favoritos.addWidget(poster, idx // 4, idx % 4)
         favoritos_layout.addLayout(grid_favoritos)
