@@ -13,8 +13,8 @@ class CinemaDatabase:
             self.conn = mysql.connector.connect(
                 host='localhost',
                 database='Checkin_Cinema',
-                user='root',
-                password=''
+                user='suporte',
+                password='suporte'
             )
             if self.conn.is_connected():
                 self.cursor = self.conn.cursor()
