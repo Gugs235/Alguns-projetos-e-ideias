@@ -119,8 +119,10 @@ class CinemaBackend:
         try:
             self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (%s, %s)", (usuario_id, filme_id))
             self.conn.commit()
+            print(f"Filme {filme_id} adicionado aos favoritos do usuário {usuario_id}")
             return True, "Filme adicionado aos favoritos!"
         except Exception as e:
+            print(f"Erro ao adicionar favorito: {str(e)}")
             return False, f"Erro ao adicionar favorito: {str(e)}"
 
     def remover_favorito(self, usuario_id, filme_id):
@@ -128,13 +130,17 @@ class CinemaBackend:
         self.conn.commit()
 
     def get_favoritos(self, usuario_id):
+        # Garantir que usuario_id é um valor escalar (int)
+        if isinstance(usuario_id, (tuple, list)):
+            usuario_id = usuario_id[0]
         self.cursor.execute("""
             SELECT f.id, f.nome, f.cinema_id, f.duracao, f.data_lancamento, f.genero, f.classificacao, f.sinopse, f.trailer_url, f.poster_data 
             FROM filmes f 
             JOIN favoritos fav ON f.id = fav.filme_id 
             WHERE fav.usuario_id = %s
         """, (usuario_id,))
-        return self.cursor.fetchall()
+        favoritos = self.cursor.fetchall()
+        return favoritos
 
     def get_compras(self, usuario_id):
         self.cursor.execute('''
