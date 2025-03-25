@@ -659,7 +659,9 @@ class SessaoWindow(QDialog):
 
         sessao_id = self.sessao_combo.currentData()
         if sessao_id:
-            self.compra_window = CompraWindow(self.backend, self.usuario_id, self.filme_id, sessao_id, self.selected_assentos, self.app_parent, self)
+            # Garantir que usuario_id seja um inteiro
+            usuario_id = self.usuario_id if isinstance(self.usuario_id, int) else self.usuario_id[0]
+            self.compra_window = CompraWindow(self.backend, usuario_id, self.filme_id, sessao_id, self.selected_assentos, self.app_parent, self)
             self.compra_window.show()
             self.hide()
         else:

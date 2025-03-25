@@ -6,14 +6,19 @@ class CinemaBackend:
     def __init__(self):
         self.db = CinemaDatabase()
         self.conn = self.db.conn
-        # Usar cursor buffered para evitar resultados pendentes
         self.cursor = self.conn.cursor(buffered=True)
+
+    # Função auxiliar para garantir que usuario_id seja um inteiro
+    def _ensure_scalar(self, value):
+        if isinstance(value, (tuple, list)):
+            return value[0]
+        return value
 
     def login_usuario(self, email, senha):
         try:
             self.cursor.execute("SELECT id, nome FROM usuarios WHERE email = %s AND senha = %s", (email, senha))
             usuario = self.cursor.fetchone()
-            return usuario  # Retorna (usuario_id, nome) ou None se não encontrar
+            return usuario  # Retorna (id, nome) ou None
         except Exception as e:
             print(f"Erro ao fazer login: {str(e)}")
             return None
@@ -41,14 +46,17 @@ class CinemaBackend:
             return False, None, f"Erro ao fazer login: {str(e)}"
 
     def get_usuario_info(self, usuario_id):
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute("SELECT nome, sobrenome, email, senha FROM usuarios WHERE id = %s", (usuario_id,))
         return self.cursor.fetchone()
 
     def get_cartao_info(self, usuario_id):
-        self.cursor.execute("SELECT nome_cartao, numero_cartao, data_expiracao, cvv FROM cartoes WHERE usuario_id = %s", (usuario_id,))
-        return self.cursor.fetchone()
+            usuario_id = self._ensure_scalar(usuario_id)
+            self.cursor.execute("SELECT nome_cartao, numero_cartao, data_expiracao, cvv FROM cartoes WHERE usuario_id = %s", (usuario_id,))
+            return self.cursor.fetchone()
 
     def salvar_cartao(self, usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv):
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute("""
             INSERT INTO cartoes (usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv) 
             VALUES (%s, %s, %s, %s, %s) 
@@ -89,6 +97,7 @@ class CinemaBackend:
         return ocupados, maxima
 
     def reservar_assentos(self, usuario_id, sessao_id, assentos, forma_pagamento):
+        usuario_id = self._ensure_scalar(usuario_id)
         ocupados, maxima = self.get_lotacao_atual(sessao_id)
         print(f"Lotação atual: {ocupados}/{maxima}, Tentando reservar {len(assentos)} assentos")
         if ocupados + len(assentos) > maxima:
@@ -116,6 +125,7 @@ class CinemaBackend:
             return False, f"Erro ao realizar compra: {str(e)}"
 
     def adicionar_favorito(self, usuario_id, filme_id):
+        usuario_id = self._ensure_scalar(usuario_id)
         try:
             self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (%s, %s)", (usuario_id, filme_id))
             self.conn.commit()
@@ -126,13 +136,12 @@ class CinemaBackend:
             return False, f"Erro ao adicionar favorito: {str(e)}"
 
     def remover_favorito(self, usuario_id, filme_id):
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute("DELETE FROM favoritos WHERE usuario_id = %s AND filme_id = %s", (usuario_id, filme_id))
         self.conn.commit()
 
     def get_favoritos(self, usuario_id):
-        # Garantir que usuario_id é um valor escalar (int)
-        if isinstance(usuario_id, (tuple, list)):
-            usuario_id = usuario_id[0]
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute("""
             SELECT f.id, f.nome, f.cinema_id, f.duracao, f.data_lancamento, f.genero, f.classificacao, f.sinopse, f.trailer_url, f.poster_data 
             FROM filmes f 
@@ -143,6 +152,7 @@ class CinemaBackend:
         return favoritos
 
     def get_compras(self, usuario_id):
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute('''
             SELECT r.id, f.nome, s.data, s.horario, s.tipo_sala, c.nome, a.numero
             FROM reservas r
