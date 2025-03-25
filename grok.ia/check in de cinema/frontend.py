@@ -1111,13 +1111,20 @@ class CinemaApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Cinema Check-in - PobreVision")
-        self.backend = CinemaBackend()
+        # Inicializar o backend como None e criar uma nova instância apenas quando necessário
+        self.backend = None
+        self.usuario_id = None
+        self.usuario_nome = None
         self.init_ui()
 
     def init_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
+
+        # Criar uma nova instância de backend apenas na inicialização
+        if self.backend is None:
+            self.backend = CinemaBackend()
 
         self.login_screen = LoginWindow(self)
         self.main_layout.addWidget(self.login_screen)
@@ -1137,23 +1144,34 @@ class CinemaApp(QMainWindow):
     def closeEvent(self, event):
         print("Fechando a conexão com o banco de dados...")
         try:
-            # Consumir quaisquer resultados pendentes
-            while self.backend.cursor.nextset():
-                pass
-            self.backend.fechar_conexao()
+            if self.backend:
+                # Consumir quaisquer resultados pendentes
+                while self.backend.cursor.nextset():
+                    pass
+                self.backend.fechar_conexao()
+                self.backend = None
         except Exception as e:
             print(f"Erro ao fechar a conexão: {e}")
         event.accept()
 
     def show_main_window(self, usuario_id, usuario_nome):
+        print(f"Exibindo main window para usuario_id: {usuario_id}, nome: {usuario_nome}")
         self.main_layout.removeWidget(self.login_screen)
         self.login_screen.deleteLater()
 
+        # Garantir que usuario_id seja um inteiro
+        if isinstance(usuario_id, (tuple, list)):
+            usuario_id = usuario_id[0]
         self.usuario_id = usuario_id
         self.usuario_nome = usuario_nome
 
+        # Resetar o backend para uma nova instância (opcional, dependendo do caso)
+        if self.backend:
+            self.backend.fechar_conexao()
+        self.backend = CinemaBackend()
+
         self.nav_bar = QHBoxLayout()
-        self.nav_buttons = []  # Inicializar a lista de botões
+        self.nav_buttons = []  # Reiniciar a lista de botões
         self.nav_bar.addWidget(self.create_nav_icon("🏠 Home", self.show_home))
         self.nav_bar.addWidget(self.create_nav_icon("⭐ Favoritos", self.show_favoritos))
         self.nav_bar.addWidget(self.create_nav_icon("🎟️ Compras", self.show_compras))
@@ -1198,6 +1216,12 @@ class CinemaApp(QMainWindow):
 
         if reply == QMessageBox.StandardButton.Yes:
             print("Usuário confirmou o logout.")
+            # Fechar a conexão atual do backend
+            if self.backend:
+                self.backend.fechar_conexao()
+                self.backend = None  # Resetar o backend
+
+            # Limpar o conteúdo atual
             self.clear_content()
             for i in reversed(range(self.main_layout.count())):
                 widget = self.main_layout.itemAt(i).widget()
@@ -1209,13 +1233,18 @@ class CinemaApp(QMainWindow):
                 if widget:
                     widget.deleteLater()
             
-            self.nav_buttons = []  # Limpar a lista de botões
+            # Limpar variáveis de estado
+            self.nav_buttons = []
             self.usuario_id = None
             self.usuario_nome = None
-            
+
+            # Criar uma nova instância do backend
+            self.backend = CinemaBackend()
+
+            # Recriar a tela de login
             self.login_screen = LoginWindow(self)
             self.main_layout.addWidget(self.login_screen)
-            print("Logout concluído. Tela de login exibida.")
+            print("Logout concluído. Tela de login exibida com estado reiniciado.")
         else:
             print("Logout cancelado pelo usuário.")
 
