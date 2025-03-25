@@ -7,7 +7,7 @@ import os
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 import yt_dlp
-from PySide6.QtGui import QPixmap  # Importar QPixmap do PySide6
+
 import requests
 from PySide6.QtCore import QByteArray
 from PySide6.QtGui import QPixmap

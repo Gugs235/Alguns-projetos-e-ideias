@@ -227,13 +227,12 @@ class CinemaDatabase:
         print("Estrutura da tabela 'favoritos' verificada com sucesso.")
 
     def inserir_dados_iniciais(self):
-        import requests  # Adicionar import para baixar imagens
-        # Verificar se já existem dados na tabela cinemas
+        import requests
         self.cursor.execute("SELECT COUNT(*) FROM cinemas")
         count = self.cursor.fetchone()[0]
         print(f"Total de cinemas no banco: {count}")
 
-        if count == 0:  # Só insere se a tabela estiver vazia
+        if count == 0:
             print("Inserindo dados iniciais...")
             # Cinemas
             cinemas = [
@@ -246,8 +245,7 @@ class CinemaDatabase:
             self.conn.commit()
             print(f"Inseridos {len(cinemas)} cinemas.")
 
-            # Filmes com o novo campo poster_path
-# No arquivo database.py, na função inserir_dados_iniciais
+            # Filmes
             filmes = [
                 ("Fé para o Impossível", 1, "01:40:00", "2023-08-15", "Drama", "12", 
                 "Um jovem enfrenta desafios para alcançar um milagre.", "https://www.youtube.com/watch?v=b7vP1opVt5A", 
@@ -299,7 +297,7 @@ class CinemaDatabase:
                 "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPi29CQGC_FEcoQYQwxP2oqafgjIQmP56zsw&s"),
                 ("Sonic 2", 1, "02:02:00", "2022-04-08", "Aventura", "Livre", 
                 "Sonic enfrenta Knuckles e o Dr. Robotnik.", "https://www.youtube.com/watch?v=47r8FXYZWNU", 
-                "https://sm.ign.com/t/ign_br/screenshot/default/sth2-intl-dgtl-payoff-1-sht-bra_b76q.960.jpg"),
+                "https://ingresso-a.akamaihd.net/prd/img/movie/sonic-2/fde04f56-1afb-4c71-9ff2-97dac723f8d8.jpg"),
                 ("Sonic 3", 2, "02:05:00", "2024-12-20", "Aventura", "Livre", 
                 "Sonic e amigos lutam contra Shadow.", "https://www.youtube.com/watch?v=qSu6iXzF4oc", 
                 "https://ingresso-a.akamaihd.net/b2b/production/uploads/articles-content/f64cf04e-7707-4f9d-9f65-34534f0f59cc.jpg"),
@@ -320,22 +318,28 @@ class CinemaDatabase:
                 "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPTyYBnPwo2Ni0Wj81VSngSgChiKjh44bN2Q&s"),
             ]
 
+            filmes_inseridos = []
             for filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_url in filmes:
-                # Baixar a imagem da URL
                 poster_data = None
                 try:
                     response = requests.get(poster_url, timeout=5)
                     response.raise_for_status()
-                    poster_data = response.content  # Dados binários da imagem
+                    poster_data = response.content
                 except Exception as e:
-                    print(f"Erro ao baixar pôster de {filme}: {str(e)}")
-                    continue  # Pula este filme se o download falhar
+                    print(f"Erro ao baixar pôster de {filme}: {str(e)}. Usando pôster padrão.")
+                    poster_data = None  # Ou use um pôster padrão local
 
                 self.cursor.execute("""
                     INSERT INTO filmes (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (filme, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data))
-            print(f"Inseridos {len(filmes)} filmes.")
+                filmes_inseridos.append(filme)
+            self.conn.commit()
+            print(f"Inseridos {len(filmes_inseridos)} filmes.")
+
+            # Sessões (ajustadas para os filmes inseridos)
+            self.cursor.execute("SELECT id, nome FROM filmes")
+            filmes_ids = {nome: id for id, nome in self.cursor.fetchall()}
 
             # Sessões
             sessoes = [
@@ -365,8 +369,10 @@ class CinemaDatabase:
                 (23, 3, "2025-03-15", "19:30:00", "VIP", 30)
             ]
             for filme_id, cinema_id, data, horario, tipo_sala, lotacao in sessoes:
-                self.cursor.execute("INSERT INTO sessoes (filme_id, cinema_id, data, horario, tipo_sala, lotacao_maxima) VALUES (%s, %s, %s, %s, %s, %s)", 
-                                (filme_id, cinema_id, data, horario, tipo_sala, lotacao))
+                if filme_id:  # Só insere se o filme_id existe
+                    self.cursor.execute("INSERT INTO sessoes (filme_id, cinema_id, data, horario, tipo_sala, lotacao_maxima) VALUES (%s, %s, %s, %s, %s, %s)", 
+                                        (filme_id, cinema_id, data, horario, tipo_sala, lotacao))
+            self.conn.commit()
             print(f"Inseridas {len(sessoes)} sessões.")
 
             # Assentos
@@ -375,11 +381,9 @@ class CinemaDatabase:
             for sessao_id in sessoes_ids:
                 for i in range(1, 51):
                     self.cursor.execute("INSERT INTO assentos (sessao_id, numero, reservado) VALUES (%s, %s, %s)", 
-                                    (sessao_id, f"A{i}", 0))
-            print(f"Inseridos assentos para {len(sessoes_ids)} sessões.")
-
+                                        (sessao_id, f"A{i:02d}", 0))  # A01, A02, etc.
             self.conn.commit()
-            print("Dados iniciais inseridos com sucesso!")
+            print(f"Inseridos assentos para {len(sessoes_ids)} sessões.")
 
     def fechar_conexao(self):
         if self.conn.is_connected():
