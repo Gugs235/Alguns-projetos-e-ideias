@@ -1,6 +1,7 @@
 # backend.py
 import mysql.connector
 from database import CinemaDatabase
+from PySide6.QtWidgets import QMessageBox
 
 class CinemaBackend:
     def __init__(self):
@@ -118,7 +119,8 @@ class CinemaBackend:
                 else:
                     raise Exception(f"Assento {assento} não encontrado para sessão {sessao_id}")
             self.conn.commit()
-            return True, f"Compra concluída! Valor total: R${valor_total:.2f}"
+            return True, CinemaBackend.mensagem_ok(self, f"Compra concluída!", f"Valor total: R${valor_total:.2f}")
+            #return True, f"Compra concluída! Valor total: R${valor_total:.2f}"
         except Exception as e:
             self.conn.rollback()
             print(f"Erro ao reservar assentos: {e}")
@@ -166,3 +168,31 @@ class CinemaBackend:
 
     def fechar_conexao(self):
         self.db.fechar_conexao()
+
+    def mensagem_ok(self,titulo,mensagem):
+        self.titulo = titulo
+        self.mensagem = mensagem
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(f"{titulo}")
+        msg_box.setText(f"{mensagem}")
+        msg_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #2a2a2a;
+                color: #ffffff;
+            }
+            QMessageBox QLabel {
+                background-color: #2a2a2a;
+                color: #ffffff;
+            }
+            QMessageBox QPushButton {
+                background-color: #ffffff;
+                color: #000000;
+                width: 70px;
+                height: 30px;
+                border-radius: 8px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #999999;
+            }
+        """)
+        msg_box.exec()

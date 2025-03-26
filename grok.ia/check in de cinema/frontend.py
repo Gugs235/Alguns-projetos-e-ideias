@@ -214,28 +214,7 @@ class LoginForm(QDialog):
         if usuario:
             usuario_id, nome = usuario
             # Criar e estilizar o QMessageBox para a mensagem de sucesso
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Sucesso")
-            msg_box.setText(f"Bem-vindo, {nome}!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
+            CinemaBackend.mensagem_ok(self, "Sucesso", f"Login efetuado com sucesso! Bem-vindo, {nome}!")
             self.close()
             self.app_parent.show_main_window(usuario_id, nome)
         else:
@@ -343,7 +322,7 @@ class CadastroForm(QDialog):
         try:
             usuario_id = self.backend.cadastrar_usuario(nome, sobrenome, email, senha)
             if usuario_id:
-                QMessageBox.information(self, "Sucesso", "Usuário cadastrado com sucesso! \nAgora se você quiser logar no programa, basta clicar no botão 'Login'")
+                CinemaBackend.mensagem_ok(self, "Sucesso", "Usuário cadastrado com sucesso! \nAgora se você quiser logar no programa, basta clicar no botão 'Login'")
                 self.close()
             else:
                 QMessageBox.warning(self, "Erro", "Erro ao cadastrar usuário. Verifique os dados e tente novamente.")
@@ -422,30 +401,7 @@ class FilmeInfoWindow(QDialog):
         """Adiciona o filme aos favoritos."""
         try:
             self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
-
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Sucesso")
-            msg_box.setText(f"{self.filme_nome} foi adicionado aos favoritos!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #ffffff;
-                    color: #000000;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #999999;
-                }
-            """)
-            msg_box.exec()
-
+            CinemaBackend.mensagem_ok(self, "Sucesso", f"{self.filme_nome} foi adicionado aos favoritos!")
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao favoritar o filme: {str(e)}")
 
@@ -828,30 +784,7 @@ class CompraWindow(QDialog):
         if pix_window.exec() == QDialog.Accepted:
             self.pix_confirmado = True
             self.pagar_btn.setEnabled(True)  # Habilitar o botão "Pagar" após gerar o PIX
-
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("PIX Gerado")
-            msg_box.setText("QR Code gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #ffffff;
-                    color: #000000;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #999999;
-                }
-            """)
-            msg_box.exec()
-
+            CinemaBackend.mensagem_ok(self, "PIX Gerado", "QR Code gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
         else:
             self.pagar_btn.setEnabled(False)  # Desabilitar se o usuário cancelar
 
@@ -860,7 +793,7 @@ class CompraWindow(QDialog):
         if boleto_window.exec() == QDialog.Accepted:
             self.boleto_confirmado = True
             self.pagar_btn.setEnabled(True)  # Habilitar o botão "Pagar" após gerar o boleto
-            QMessageBox.information(self, "Boleto Gerado", "Boleto gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
+            CinemaBackend.mensagem_ok(self, "Boleto Gerado", "Boleto gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
         else:
             self.pagar_btn.setEnabled(False)  # Desabilitar se o usuário cancelar
 
@@ -1013,7 +946,8 @@ class CartaoWindow(QDialog):
         # Salvar o cartão no backend
         try:
             self.backend.salvar_cartao(self.usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv)
-            QMessageBox.information(self, "Sucesso", "Cartão salvo com sucesso!")
+            CinemaBackend.mensagem_ok(self, "Sucesso", "Cartão salvo com sucesso!")
+            # QMessageBox.information(self, "Sucesso", "Cartão salvo com sucesso!")
             self.accept()  # Fecha o diálogo com sucesso
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao salvar o cartão: {str(e)}")
