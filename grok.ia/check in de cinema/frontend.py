@@ -343,9 +343,8 @@ class CadastroForm(QDialog):
         try:
             usuario_id = self.backend.cadastrar_usuario(nome, sobrenome, email, senha)
             if usuario_id:
-                QMessageBox.information(self, "Sucesso", "Usuário cadastrado com sucesso!")
+                QMessageBox.information(self, "Sucesso", "Usuário cadastrado com sucesso! \nAgora se você quiser logar no programa, basta clicar no botão 'Login'")
                 self.close()
-                self.app_parent.show_main_window(usuario_id, nome)
             else:
                 QMessageBox.warning(self, "Erro", "Erro ao cadastrar usuário. Verifique os dados e tente novamente.")
         except Exception as e:
