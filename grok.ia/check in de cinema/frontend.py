@@ -29,6 +29,7 @@ class LoginWindow(QWidget):
         # Logo e Nome da Empresa
         logo = QLabel("🎬 PobreVision")
         logo.setStyleSheet("font-size: 40px; color: #e50914; font-weight: bold; padding: 20px;")
+        logo.setAlignment(Qt.AlignmentFlag.AlignLeft)  # Centralizar o logo
         layout.addWidget(logo)
 
         # Cards com Imagens de Filmes
@@ -41,26 +42,53 @@ class LoginWindow(QWidget):
                 padding: 10px;
                 min-width: 150px;
                 min-height: 200px;
+                max-width: 450px;
+                max-height: 500px;
                 qproperty-alignment: AlignCenter;
             """)
             cards_layout.addWidget(card)
+        # cards_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Centralizar os cards
         layout.addLayout(cards_layout)
 
         # Texto de Boas-Vindas
         welcome_text = QLabel("Bem-vindo ao PobreVision! Faça login ou cadastre-se para comprar ingressos.")
         welcome_text.setStyleSheet("font-size: 16px; color: #ffffff; padding: 10px;")
+        welcome_text.setAlignment(Qt.AlignmentFlag.AlignLeft)  # Centralizar o texto
         layout.addWidget(welcome_text)
 
-        # Botões de Login e Cadastro
+        # Espaçador superior para empurrar os botões para o centro verticalmente
+        layout.addStretch(1)
+
+        # Layout horizontal para os botões
+        buttons_layout = QHBoxLayout()
+
+        # Botão Login
         self.login_btn = QPushButton("Login")
+        self.login_btn.setMinimumSize(QSize(100, 60))
+        self.login_btn.setMaximumSize(QSize(200, 80))
         self.login_btn.clicked.connect(self.show_login_form)
         self.login_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
-        layout.addWidget(self.login_btn)
+        buttons_layout.addWidget(self.login_btn)
 
+        # Espaçador entre os botões
+        buttons_layout.addSpacing(20)  # Adiciona um espaço de 20px entre os botões
+
+        # Botão Cadastrar
         self.cadastro_btn = QPushButton("Cadastrar")
+        self.cadastro_btn.setMinimumSize(QSize(100, 60))
+        self.cadastro_btn.setMaximumSize(QSize(200, 80))
         self.cadastro_btn.clicked.connect(self.show_cadastro_form)
         self.cadastro_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
-        layout.addWidget(self.cadastro_btn)
+        buttons_layout.addWidget(self.cadastro_btn)
+
+        # Centralizar o layout dos botões horizontalmente
+        buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Adicionar o layout dos botões ao layout principal
+        layout.addLayout(buttons_layout)
+
+        # Espaçador inferior para equilibrar o centralização vertical
+        layout.addStretch(1)
 
         self.setStyleSheet("background-color: #1a1a1a;")
 
@@ -160,53 +188,11 @@ class LoginForm(QDialog):
 
         # Validação dos campos
         if not email:
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Erro")
-            msg_box.setText("O campo Email é obrigatório!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Email é obrigatório!")
             return
 
         if not senha:
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Erro")
-            msg_box.setText("O campo Senha é obrigatório!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Senha é obrigatório!")
             return
 
         # Tentar fazer login
@@ -306,16 +292,16 @@ class CadastroForm(QDialog):
 
         # Validação dos campos
         if not nome:
-            QMessageBox.warning(self, "Erro", "O campo Nome é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Nome é obrigatório!")
             return
         if not sobrenome:
-            QMessageBox.warning(self, "Erro", "O campo Sobrenome é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Sobrenome é obrigatório!")
             return
         if not email:
-            QMessageBox.warning(self, "Erro", "O campo Email é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Email é obrigatório!")
             return
         if not senha:
-            QMessageBox.warning(self, "Erro", "O campo Senha é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Senha é obrigatório!")
             return
 
         # Tentar cadastrar o usuário
@@ -931,16 +917,16 @@ class CartaoWindow(QDialog):
 
         # Validação dos campos
         if not nome_cartao:
-            QMessageBox.warning(self, "Erro", "Por favor, preencha o nome no cartão.")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Nome no Cartão é obrigatório!")
             return
         if not numero_cartao or len(numero_cartao) != 16 or not numero_cartao.isdigit():
-            QMessageBox.warning(self, "Erro", "O número do cartão deve conter exatamente 16 dígitos numéricos.")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Número do Cartão é obrigatório e deve conter exatamente 16 dígitos numéricos.")
             return
         if not data_expiracao or len(data_expiracao) != 5 or data_expiracao[2] != '/' or not all(c.isdigit() for c in data_expiracao.replace('/', '')):
-            QMessageBox.warning(self, "Erro", "A data de expiração deve estar no formato MM/AA (ex.: 12/25).")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Data de Expiração é obrigatório e deve estar no formato MM/AA (ex.: 12/25).")
             return
         if not cvv or len(cvv) != 3 or not cvv.isdigit():
-            QMessageBox.warning(self, "Erro", "O CVV deve conter exatamente 3 dígitos numéricos.")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo CVV é obrigatório e deve conter exatamente 3 dígitos numéricos.")
             return
 
         # Salvar o cartão no backend
