@@ -2,6 +2,7 @@
 import mysql.connector
 from database import CinemaDatabase
 from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QApplication
 
 class CinemaBackend:
     def __init__(self):
@@ -196,3 +197,20 @@ class CinemaBackend:
             }
         """)
         msg_box.exec()
+
+    def center_window(window):
+        # Obter a geometria da tela principal
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+        screen_center = screen_geometry.center()
+
+        # Obter a geometria da janela
+        window_geometry = window.frameGeometry()
+        window_center = window_geometry.center()
+
+        # Calcular a nova posição para centralizar
+        new_x = screen_center.x() - window_geometry.width() // 2
+        new_y = screen_center.y() - window_geometry.height() // 2
+
+        # Mover a janela para o centro
+        window.move(new_x, new_y)

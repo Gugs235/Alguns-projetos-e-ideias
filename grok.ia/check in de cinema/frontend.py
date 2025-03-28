@@ -140,12 +140,15 @@ class LoginWindow(QWidget):
 class LoginForm(QDialog):
     def __init__(self, backend, app_parent, parent=None):
         super().__init__(parent)
-        self.backend = backend  # Recebe o backend como parâmetro
+        self.backend = backend
         self.app_parent = app_parent
         self.setWindowTitle("Login")
-        self.setGeometry(300, 300, 300, 300)
+        self.setMinimumSize(300, 300, 300, 300)  # Definir tamanho inicial
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
+
+        # Centralizar a janela
+        CinemaBackend.center_window(self)
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -230,12 +233,15 @@ class LoginForm(QDialog):
 class CadastroForm(QDialog):
     def __init__(self, backend, app_parent, parent=None):
         super().__init__(parent)
-        self.backend = backend  # Recebe o backend como parâmetro
+        self.backend = backend
         self.app_parent = app_parent
         self.setWindowTitle("Cadastro")
-        self.setGeometry(300, 300, 300, 400)
+        self.setMinimumSize(300, 300, 300, 400)  # Definir tamanho inicial
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
+
+        # Centralizar a janela
+        CinemaBackend.center_window(self)
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -327,7 +333,7 @@ class FilmeInfoWindow(QDialog):
         self.usuario_id = usuario_id  # Armazenar o usuario_id
         self.parent = parent
         self.setWindowTitle(f"Informações do Filme: {filme_nome}")
-        self.setGeometry(300, 300, 400, 500)
+        self.setMinimumSize(300, 300, 400, 500)
         self.init_ui()
 
     def init_ui(self):
@@ -432,11 +438,15 @@ class SessaoWindow(QDialog):
         self.selected_assentos = []  # Lista para armazenar os assentos selecionados
         self.assentos = {}  # Dicionário para armazenar os botões de assento
         self.setStyleSheet("background-color: #1a1a1a;")
+        self.setMinimumSize(300, 300, 600, 600)  # Definir tamanho inicial
         self.init_ui()
+
+        CinemaBackend.center_window(self)
+
 
     def init_ui(self):
             self.setWindowTitle("Selecionar Sessão e Assentos")
-            self.setGeometry(300, 300, 600, 600)
+            self.setMinimumSize(300, 300, 600, 600)
             layout = QVBoxLayout()
 
             # Título
@@ -851,7 +861,7 @@ class CartaoWindow(QDialog):
         self.backend = backend
         self.usuario_id = usuario_id
         self.setWindowTitle("Dados do Cartão")
-        self.setGeometry(300, 300, 300, 300)
+        self.setMinimumSize(300, 300, 300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -943,7 +953,7 @@ class PixWindow(QDialog):
         super().__init__(parent)
         self.total = total
         self.setWindowTitle("Pagamento via PIX")
-        self.setGeometry(300, 300, 400, 300)
+        self.setMinimumSize(300, 300, 400, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -987,7 +997,7 @@ class BoletoWindow(QDialog):
         super().__init__(parent)
         self.total = total
         self.setWindowTitle("Pagamento via Boleto")
-        self.setGeometry(300, 300, 400, 300)
+        self.setMinimumSize(300, 300, 400, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -1036,6 +1046,10 @@ class CinemaApp(QMainWindow):
         self.usuario_nome = None
         self.init_ui()
 
+        # Centralizar a janela após configurar o tamanho
+        self.setMinimumSize(1050, 760)  # Define um tamanho mínimo para a janela
+        CinemaBackend.center_window(self)
+
     def init_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -1058,7 +1072,7 @@ class CinemaApp(QMainWindow):
                 font-family: Arial, sans-serif;
             }
         """)
-        self.resize(800, 600)
+
 
     def closeEvent(self, event):
         print("Fechando a conexão com o banco de dados...")
@@ -1101,6 +1115,7 @@ class CinemaApp(QMainWindow):
         self.content_widget = QWidget()
         self.content_layout = QVBoxLayout(self.content_widget)
         self.main_layout.addWidget(self.content_widget)
+        
 
         self.show_home()
 
