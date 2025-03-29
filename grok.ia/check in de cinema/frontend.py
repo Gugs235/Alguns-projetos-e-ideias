@@ -815,7 +815,30 @@ class CompraWindow(QDialog):
         print(f"Reserva retornou: sucesso={sucesso}, mensagem={mensagem}")
 
         if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
+            # Exibir mensagem de sucesso usando QMessageBox
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Sucesso")
+            msg_box.setText(mensagem)
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
+            msg_box.exec()
+
             if not self.voltar_btn:
                 self.voltar_btn = QPushButton("Voltar para a Home")
                 self.voltar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; border-radius: 8px; padding: 8px;")

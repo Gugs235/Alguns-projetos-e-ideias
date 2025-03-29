@@ -120,8 +120,7 @@ class CinemaBackend:
                 else:
                     raise Exception(f"Assento {assento} não encontrado para sessão {sessao_id}")
             self.conn.commit()
-            return True, CinemaBackend.mensagem_ok(self, f"Compra concluída!", f"Valor total: R${valor_total:.2f}")
-            #return True, f"Compra concluída! Valor total: R${valor_total:.2f}"
+            return True, f"Compra concluída! Valor total: R${valor_total:.2f}"  # Retornar apenas a string
         except Exception as e:
             self.conn.rollback()
             print(f"Erro ao reservar assentos: {e}")
