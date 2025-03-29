@@ -126,21 +126,39 @@ class CinemaBackend:
             print(f"Erro ao reservar assentos: {e}")
             return False, f"Erro ao realizar compra: {str(e)}"
 
+    def is_favorito(self, usuario_id, filme_id):
+            """Verifica se o filme já está nos favoritos do usuário."""
+            usuario_id = self._ensure_scalar(usuario_id)
+            self.cursor.execute("SELECT COUNT(*) FROM favoritos WHERE usuario_id = %s AND filme_id = %s", (usuario_id, filme_id))
+            return self.cursor.fetchone()[0] > 0
+
     def adicionar_favorito(self, usuario_id, filme_id):
-        usuario_id = self._ensure_scalar(usuario_id)
-        try:
-            self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (%s, %s)", (usuario_id, filme_id))
-            self.conn.commit()
-            print(f"Filme {filme_id} adicionado aos favoritos do usuário {usuario_id}")
-            return True, "Filme adicionado aos favoritos!"
-        except Exception as e:
-            print(f"Erro ao adicionar favorito: {str(e)}")
-            return False, f"Erro ao adicionar favorito: {str(e)}"
+            """Adiciona o filme aos favoritos se ele ainda não estiver favoritado."""
+            usuario_id = self._ensure_scalar(usuario_id)
+            if self.is_favorito(usuario_id, filme_id):
+                return False, "O filme já está nos favoritos!"
+            try:
+                self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (%s, %s)", (usuario_id, filme_id))
+                self.conn.commit()
+                print(f"Filme {filme_id} adicionado aos favoritos do usuário {usuario_id}")
+                return True, "Filme adicionado aos favoritos!"
+            except Exception as e:
+                print(f"Erro ao adicionar favorito: {str(e)}")
+                return False, f"Erro ao adicionar favorito: {str(e)}"
 
     def remover_favorito(self, usuario_id, filme_id):
-        usuario_id = self._ensure_scalar(usuario_id)
-        self.cursor.execute("DELETE FROM favoritos WHERE usuario_id = %s AND filme_id = %s", (usuario_id, filme_id))
-        self.conn.commit()
+            """Remove o filme dos favoritos se ele estiver favoritado."""
+            usuario_id = self._ensure_scalar(usuario_id)
+            if not self.is_favorito(usuario_id, filme_id):
+                return False, "O filme não está nos favoritos!"
+            try:
+                self.cursor.execute("DELETE FROM favoritos WHERE usuario_id = %s AND filme_id = %s", (usuario_id, filme_id))
+                self.conn.commit()
+                print(f"Filme {filme_id} removido dos favoritos do usuário {usuario_id}")
+                return True, "Filme removido dos favoritos!"
+            except Exception as e:
+                print(f"Erro ao remover favorito: {str(e)}")
+                return False, f"Erro ao remover favorito: {str(e)}"
 
     def get_favoritos(self, usuario_id):
         usuario_id = self._ensure_scalar(usuario_id)

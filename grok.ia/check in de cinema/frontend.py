@@ -326,68 +326,89 @@ from PySide6.QtCore import Qt
 
 class FilmeInfoWindow(QDialog):
     def __init__(self, filme_id, filme_nome, backend, usuario_id, parent=None):
-        super().__init__(parent=parent)  # Inicializar o QDialog com o parent
+        super().__init__(parent=parent)
         self.filme_id = filme_id
         self.filme_nome = filme_nome
         self.backend = backend
-        self.usuario_id = usuario_id  # Armazenar o usuario_id
+        self.usuario_id = usuario_id
         self.parent = parent
         self.setWindowTitle(f"Informações do Filme: {filme_nome}")
         self.setMinimumSize(400, 450)
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+            layout = QVBoxLayout(self)
 
-        # Obter informações do filme
-        filme_info = self.backend.get_filme_info(self.filme_id)
-        if filme_info:
-            nome = filme_info[1]
-            cinema_id = filme_info[2]
-            duracao = filme_info[3]
-            data_lancamento = filme_info[4]
-            genero = filme_info[5]
-            classificacao = filme_info[6]
-            sinopse = filme_info[7]
-            trailer_url = filme_info[8]
+            # Obter informações do filme
+            filme_info = self.backend.get_filme_info(self.filme_id)
+            if filme_info:
+                nome = filme_info[1]
+                cinema_id = filme_info[2]
+                duracao = filme_info[3]
+                data_lancamento = filme_info[4]
+                genero = filme_info[5]
+                classificacao = filme_info[6]
+                sinopse = filme_info[7]
+                trailer_url = filme_info[8]
 
-            # Exibir informações do filme
-            # mudando o backgrond
-            self.setStyleSheet("background-color: #1a1a1a;")   
+                self.setStyleSheet("background-color: #1a1a1a;")
+                layout.addWidget(QLabel(f"<h2>{nome}</h2>"))
+                layout.addWidget(QLabel(f"<b>Gênero:</b> {genero}"))
+                layout.addWidget(QLabel(f"<b>Duração:</b> {duracao}"))
+                layout.addWidget(QLabel(f"<b>Classificação:</b> {classificacao}"))
+                layout.addWidget(QLabel(f"<b>Data de Lançamento:</b> {data_lancamento}"))
+                layout.addWidget(QLabel(f"<b>Sinopse:</b> {sinopse}"))
 
-            layout.addWidget(QLabel(f"<h2>{nome}</h2>"))
-            layout.addWidget(QLabel(f"<b>Gênero:</b> {genero}"))
-            layout.addWidget(QLabel(f"<b>Duração:</b> {duracao}"))
-            layout.addWidget(QLabel(f"<b>Classificação:</b> {classificacao}"))
-            layout.addWidget(QLabel(f"<b>Data de Lançamento:</b> {data_lancamento}"))
-            layout.addWidget(QLabel(f"<b>Sinopse:</b> {sinopse}"))
+                trailer_label = QLabel(f'<a href="{trailer_url}">Assistir Trailer</a>')
+                trailer_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+                trailer_label.setOpenExternalLinks(True)
+                layout.addWidget(trailer_label)
 
-            # Link do trailer
-            trailer_label = QLabel(f'<a href="{trailer_url}">Assistir Trailer</a>')
-            trailer_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-            trailer_label.setOpenExternalLinks(True)
-            layout.addWidget(trailer_label)
+            else:
+                layout.addWidget(QLabel("Erro: Não foi possível carregar as informações do filme."))
 
-        else:
-            layout.addWidget(QLabel("Erro: Não foi possível carregar as informações do filme."))
+            # Botão de Favoritar/Desfavoritar
+            self.favoritar_btn = QPushButton("Favoritar")
+            self.favoritar_btn.setStyleSheet("background-color: #e50914; color: #ffffff;")
+            self.atualizar_texto_botao()  # Define o texto inicial do botão
+            self.favoritar_btn.clicked.connect(self.toggle_favorito)
+            layout.addWidget(self.favoritar_btn)
 
-        # Botão de Favoritar
-        favoritar_btn = QPushButton("Favoritar")
-        favoritar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
-        favoritar_btn.clicked.connect(self.favoritar_filme)
-        layout.addWidget(favoritar_btn)
+            # Botão de Comprar Ingresso
+            comprar_btn = QPushButton("Comprar Ingresso")
+            comprar_btn.setStyleSheet("background-color: #e50914; color: #ffffff;")
+            comprar_btn.clicked.connect(self.abrir_sessoes)
+            layout.addWidget(comprar_btn)
 
-        # Botão de Comprar Ingresso
-        comprar_btn = QPushButton("Comprar Ingresso")
-        comprar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
-        comprar_btn.clicked.connect(self.abrir_sessoes)
-        layout.addWidget(comprar_btn)
+            # Botão de Fechar
+            fechar_btn = QPushButton("Fechar")
+            fechar_btn.setStyleSheet("background-color: #e50914; color: #ffffff;")
+            fechar_btn.clicked.connect(self.close)
+            layout.addWidget(fechar_btn)
 
-        # Botão de Fechar
-        fechar_btn = QPushButton("Fechar")
-        fechar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
-        fechar_btn.clicked.connect(self.close)
-        layout.addWidget(fechar_btn)
+    def atualizar_texto_botao(self):
+            """Atualiza o texto do botão com base no estado de favorito."""
+            if self.backend.is_favorito(self.usuario_id, self.filme_id):
+                self.favoritar_btn.setText("Desfavoritar")
+            else:
+                self.favoritar_btn.setText("Favoritar")
+
+    def toggle_favorito(self):
+            """Alterna entre favoritar e desfavoritar o filme."""
+            if self.backend.is_favorito(self.usuario_id, self.filme_id):
+                sucesso, mensagem = self.backend.remover_favorito(self.usuario_id, self.filme_id)
+                if sucesso:
+                    CinemaBackend.mensagem_ok(self, "Sucesso", f"{self.filme_nome} foi removido dos favoritos!")
+                    self.atualizar_texto_botao()
+                else:
+                    QMessageBox.critical(self, "Erro", mensagem)
+            else:
+                sucesso, mensagem = self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
+                if sucesso:
+                    CinemaBackend.mensagem_ok(self, "Sucesso", f"{self.filme_nome} foi adicionado aos favoritos!")
+                    self.atualizar_texto_botao()
+                else:
+                    QMessageBox.critical(self, "Erro", mensagem)
 
     def favoritar_filme(self):
         """Adiciona o filme aos favoritos."""
@@ -425,7 +446,7 @@ class FilmeInfoWindow(QDialog):
         """Abre a tela de escolha de sessões e assentos."""
         self.sessoes_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self.parent, self)
         self.sessoes_window.show()
-        self.close()  # Fecha a janela de informações do filme
+        self.close()
 
 class SessaoWindow(QDialog):
     def __init__(self, backend, usuario_id, filme_id, app_parent, parent=None):
