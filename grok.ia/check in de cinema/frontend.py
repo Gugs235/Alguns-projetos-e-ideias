@@ -29,6 +29,7 @@ class LoginWindow(QWidget):
         # Logo e Nome da Empresa
         logo = QLabel("🎬 PobreVision")
         logo.setStyleSheet("font-size: 40px; color: #e50914; font-weight: bold; padding: 20px;")
+        logo.setAlignment(Qt.AlignmentFlag.AlignLeft)  # Centralizar o logo
         layout.addWidget(logo)
 
         # Cards com Imagens de Filmes
@@ -41,26 +42,75 @@ class LoginWindow(QWidget):
                 padding: 10px;
                 min-width: 150px;
                 min-height: 200px;
+                max-width: 450px;
+                max-height: 500px;
                 qproperty-alignment: AlignCenter;
             """)
             cards_layout.addWidget(card)
+        # cards_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Centralizar os cards
         layout.addLayout(cards_layout)
 
         # Texto de Boas-Vindas
         welcome_text = QLabel("Bem-vindo ao PobreVision! Faça login ou cadastre-se para comprar ingressos.")
         welcome_text.setStyleSheet("font-size: 16px; color: #ffffff; padding: 10px;")
+        welcome_text.setAlignment(Qt.AlignmentFlag.AlignLeft)  # Centralizar o texto
         layout.addWidget(welcome_text)
 
-        # Botões de Login e Cadastro
-        self.login_btn = QPushButton("Login")
-        self.login_btn.clicked.connect(self.show_login_form)
-        self.login_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
-        layout.addWidget(self.login_btn)
+        # Espaçador superior para empurrar os botões para o centro verticalmente
+        layout.addStretch(1)
 
+        # Layout horizontal para os botões
+        buttons_layout = QHBoxLayout()
+
+        # Botão Login
+        self.login_btn = QPushButton("Login")
+        self.login_btn.setMinimumSize(QSize(100, 60))
+        self.login_btn.setMaximumSize(QSize(200, 80))
+        self.login_btn.clicked.connect(self.show_login_form)
+        self.login_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
+
+        buttons_layout.addWidget(self.login_btn)
+
+        # Espaçador entre os botões
+        buttons_layout.addSpacing(20)  # Adiciona um espaço de 20px entre os botões
+
+        # Botão Cadastrar
         self.cadastro_btn = QPushButton("Cadastrar")
+        self.cadastro_btn.setMinimumSize(QSize(100, 60))
+        self.cadastro_btn.setMaximumSize(QSize(200, 80))
         self.cadastro_btn.clicked.connect(self.show_cadastro_form)
-        self.cadastro_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
-        layout.addWidget(self.cadastro_btn)
+        self.cadastro_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
+
+        buttons_layout.addWidget(self.cadastro_btn)
+
+        # Centralizar o layout dos botões horizontalmente
+        buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Adicionar o layout dos botões ao layout principal
+        layout.addLayout(buttons_layout)
+
+        # Espaçador inferior para equilibrar o centralização vertical
+        layout.addStretch(1)
 
         self.setStyleSheet("background-color: #1a1a1a;")
 
@@ -112,12 +162,15 @@ class LoginWindow(QWidget):
 class LoginForm(QDialog):
     def __init__(self, backend, app_parent, parent=None):
         super().__init__(parent)
-        self.backend = backend  # Recebe o backend como parâmetro
+        self.backend = backend
         self.app_parent = app_parent
         self.setWindowTitle("Login")
-        self.setGeometry(300, 300, 300, 300)
+        self.setMinimumSize(300, 300)  # Definir tamanho inicial
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
+
+        # Centralizar a janela
+        CinemaBackend.center_window(self)
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -142,13 +195,33 @@ class LoginForm(QDialog):
 
         # Botão Login
         login_btn = QPushButton("Entrar")
-        login_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        login_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         login_btn.clicked.connect(self.login)
         layout.addWidget(login_btn)
 
         # Botão Voltar
         voltar_btn = QPushButton("Voltar")
-        voltar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        voltar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         voltar_btn.clicked.connect(self.close)
         layout.addWidget(voltar_btn)
 
@@ -160,53 +233,11 @@ class LoginForm(QDialog):
 
         # Validação dos campos
         if not email:
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Erro")
-            msg_box.setText("O campo Email é obrigatório!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Email é obrigatório!")
             return
 
         if not senha:
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Erro")
-            msg_box.setText("O campo Senha é obrigatório!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Senha é obrigatório!")
             return
 
         # Tentar fazer login
@@ -214,28 +245,7 @@ class LoginForm(QDialog):
         if usuario:
             usuario_id, nome = usuario
             # Criar e estilizar o QMessageBox para a mensagem de sucesso
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Sucesso")
-            msg_box.setText(f"Bem-vindo, {nome}!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
+            CinemaBackend.mensagem_ok(self, "Sucesso", f"Login efetuado com sucesso! Bem-vindo, {nome}!")
             self.close()
             self.app_parent.show_main_window(usuario_id, nome)
         else:
@@ -265,12 +275,15 @@ class LoginForm(QDialog):
 class CadastroForm(QDialog):
     def __init__(self, backend, app_parent, parent=None):
         super().__init__(parent)
-        self.backend = backend  # Recebe o backend como parâmetro
+        self.backend = backend
         self.app_parent = app_parent
         self.setWindowTitle("Cadastro")
-        self.setGeometry(300, 300, 300, 400)
+        self.setMinimumSize(300, 300)  # Definir tamanho inicial
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
+
+        # Centralizar a janela
+        CinemaBackend.center_window(self)
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -307,13 +320,33 @@ class CadastroForm(QDialog):
 
         # Botão Cadastrar
         cadastrar_btn = QPushButton("Cadastrar")
-        cadastrar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cadastrar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         cadastrar_btn.clicked.connect(self.cadastrar)
         layout.addWidget(cadastrar_btn)
 
         # Botão Voltar
         voltar_btn = QPushButton("Voltar")
-        voltar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        voltar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         voltar_btn.clicked.connect(self.close)
         layout.addWidget(voltar_btn)
 
@@ -327,25 +360,24 @@ class CadastroForm(QDialog):
 
         # Validação dos campos
         if not nome:
-            QMessageBox.warning(self, "Erro", "O campo Nome é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Nome é obrigatório!")
             return
         if not sobrenome:
-            QMessageBox.warning(self, "Erro", "O campo Sobrenome é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Sobrenome é obrigatório!")
             return
         if not email:
-            QMessageBox.warning(self, "Erro", "O campo Email é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Email é obrigatório!")
             return
         if not senha:
-            QMessageBox.warning(self, "Erro", "O campo Senha é obrigatório!")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Senha é obrigatório!")
             return
 
         # Tentar cadastrar o usuário
         try:
             usuario_id = self.backend.cadastrar_usuario(nome, sobrenome, email, senha)
             if usuario_id:
-                QMessageBox.information(self, "Sucesso", "Usuário cadastrado com sucesso!")
+                CinemaBackend.mensagem_ok(self, "Sucesso", "Usuário cadastrado com sucesso! \nAgora se você quiser logar no programa, basta clicar no botão 'Login'")
                 self.close()
-                self.app_parent.show_main_window(usuario_id, nome)
             else:
                 QMessageBox.warning(self, "Erro", "Erro ao cadastrar usuário. Verifique os dados e tente novamente.")
         except Exception as e:
@@ -356,97 +388,125 @@ from PySide6.QtCore import Qt
 
 class FilmeInfoWindow(QDialog):
     def __init__(self, filme_id, filme_nome, backend, usuario_id, parent=None):
-        super().__init__(parent=parent)  # Inicializar o QDialog com o parent
+        super().__init__(parent=parent)
         self.filme_id = filme_id
         self.filme_nome = filme_nome
         self.backend = backend
-        self.usuario_id = usuario_id  # Armazenar o usuario_id
+        self.usuario_id = usuario_id
         self.parent = parent
         self.setWindowTitle(f"Informações do Filme: {filme_nome}")
-        self.setGeometry(300, 300, 400, 500)
+        self.setMinimumSize(400, 450)
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+            layout = QVBoxLayout(self)
 
-        # Obter informações do filme
-        filme_info = self.backend.get_filme_info(self.filme_id)
-        if filme_info:
-            nome = filme_info[1]
-            cinema_id = filme_info[2]
-            duracao = filme_info[3]
-            data_lancamento = filme_info[4]
-            genero = filme_info[5]
-            classificacao = filme_info[6]
-            sinopse = filme_info[7]
-            trailer_url = filme_info[8]
+            # Obter informações do filme
+            filme_info = self.backend.get_filme_info(self.filme_id)
+            if filme_info:
+                nome = filme_info[1]
+                cinema_id = filme_info[2]
+                duracao = filme_info[3]
+                data_lancamento = filme_info[4]
+                genero = filme_info[5]
+                classificacao = filme_info[6]
+                sinopse = filme_info[7]
+                trailer_url = filme_info[8]
 
-            # Exibir informações do filme
-            # mudando o backgrond
-            self.setStyleSheet("background-color: #1a1a1a;")   
+                self.setStyleSheet("background-color: #1a1a1a;")
+                layout.addWidget(QLabel(f"<h2>{nome}</h2>"))
+                layout.addWidget(QLabel(f"<b>Gênero:</b> {genero}"))
+                layout.addWidget(QLabel(f"<b>Duração:</b> {duracao}"))
+                layout.addWidget(QLabel(f"<b>Classificação:</b> {classificacao}"))
+                layout.addWidget(QLabel(f"<b>Data de Lançamento:</b> {data_lancamento}"))
+                layout.addWidget(QLabel(f"<b>Sinopse:</b> {sinopse}"))
 
-            layout.addWidget(QLabel(f"<h2>{nome}</h2>"))
-            layout.addWidget(QLabel(f"<b>Gênero:</b> {genero}"))
-            layout.addWidget(QLabel(f"<b>Duração:</b> {duracao}"))
-            layout.addWidget(QLabel(f"<b>Classificação:</b> {classificacao}"))
-            layout.addWidget(QLabel(f"<b>Data de Lançamento:</b> {data_lancamento}"))
-            layout.addWidget(QLabel(f"<b>Sinopse:</b> {sinopse}"))
+                trailer_label = QLabel(f'<a href="{trailer_url}">Assistir Trailer</a>')
+                trailer_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+                trailer_label.setOpenExternalLinks(True)
+                layout.addWidget(trailer_label)
 
-            # Link do trailer
-            trailer_label = QLabel(f'<a href="{trailer_url}">Assistir Trailer</a>')
-            trailer_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-            trailer_label.setOpenExternalLinks(True)
-            layout.addWidget(trailer_label)
+            else:
+                layout.addWidget(QLabel("Erro: Não foi possível carregar as informações do filme."))
 
-        else:
-            layout.addWidget(QLabel("Erro: Não foi possível carregar as informações do filme."))
+            # Botão de Favoritar/Desfavoritar
+            self.favoritar_btn = QPushButton("Favoritar")
+            self.favoritar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+        """)
+            self.atualizar_texto_botao()  # Define o texto inicial do botão
+            self.favoritar_btn.clicked.connect(self.toggle_favorito)
+            layout.addWidget(self.favoritar_btn)
 
-        # Botão de Favoritar
-        favoritar_btn = QPushButton("Favoritar")
-        favoritar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
-        favoritar_btn.clicked.connect(self.favoritar_filme)
-        layout.addWidget(favoritar_btn)
+            # Botão de Comprar Ingresso
+            comprar_btn = QPushButton("Comprar Ingresso")
+            comprar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+            """)
+            comprar_btn.clicked.connect(self.abrir_sessoes)
+            layout.addWidget(comprar_btn)
 
-        # Botão de Comprar Ingresso
-        comprar_btn = QPushButton("Comprar Ingresso")
-        comprar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
-        comprar_btn.clicked.connect(self.abrir_sessoes)
-        layout.addWidget(comprar_btn)
+            # Botão de Fechar
+            fechar_btn = QPushButton("Fechar")
+            fechar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+        """)
+            fechar_btn.clicked.connect(self.close)
+            layout.addWidget(fechar_btn)
 
-        # Botão de Fechar
-        fechar_btn = QPushButton("Fechar")
-        fechar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; ")
-        fechar_btn.clicked.connect(self.close)
-        layout.addWidget(fechar_btn)
+    def atualizar_texto_botao(self):
+            """Atualiza o texto do botão com base no estado de favorito."""
+            if self.backend.is_favorito(self.usuario_id, self.filme_id):
+                self.favoritar_btn.setText("Desfavoritar")
+            else:
+                self.favoritar_btn.setText("Favoritar")
+
+    def toggle_favorito(self):
+            """Alterna entre favoritar e desfavoritar o filme."""
+            if self.backend.is_favorito(self.usuario_id, self.filme_id):
+                sucesso, mensagem = self.backend.remover_favorito(self.usuario_id, self.filme_id)
+                if sucesso:
+                    CinemaBackend.mensagem_ok(self, "Sucesso", f"{self.filme_nome} foi removido dos favoritos!")
+                    self.atualizar_texto_botao()
+                else:
+                    QMessageBox.critical(self, "Erro", mensagem)
+            else:
+                sucesso, mensagem = self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
+                if sucesso:
+                    CinemaBackend.mensagem_ok(self, "Sucesso", f"{self.filme_nome} foi adicionado aos favoritos!")
+                    self.atualizar_texto_botao()
+                else:
+                    QMessageBox.critical(self, "Erro", mensagem)
 
     def favoritar_filme(self):
         """Adiciona o filme aos favoritos."""
         try:
             self.backend.adicionar_favorito(self.usuario_id, self.filme_id)
-
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Sucesso")
-            msg_box.setText(f"{self.filme_nome} foi adicionado aos favoritos!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #ffffff;
-                    color: #000000;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #999999;
-                }
-            """)
-            msg_box.exec()
-
+            CinemaBackend.mensagem_ok(self, "Sucesso", f"{self.filme_nome} foi adicionado aos favoritos!")
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao favoritar o filme: {str(e)}")
 
@@ -478,7 +538,7 @@ class FilmeInfoWindow(QDialog):
         """Abre a tela de escolha de sessões e assentos."""
         self.sessoes_window = SessaoWindow(self.backend, self.usuario_id, self.filme_id, self.parent, self)
         self.sessoes_window.show()
-        self.close()  # Fecha a janela de informações do filme
+        self.close()
 
 class SessaoWindow(QDialog):
     def __init__(self, backend, usuario_id, filme_id, app_parent, parent=None):
@@ -491,11 +551,15 @@ class SessaoWindow(QDialog):
         self.selected_assentos = []  # Lista para armazenar os assentos selecionados
         self.assentos = {}  # Dicionário para armazenar os botões de assento
         self.setStyleSheet("background-color: #1a1a1a;")
+        self.setMinimumSize(300, 300)  # Definir tamanho inicial
         self.init_ui()
+
+        CinemaBackend.center_window(self)
+
 
     def init_ui(self):
             self.setWindowTitle("Selecionar Sessão e Assentos")
-            self.setGeometry(300, 300, 600, 600)
+            self.setMinimumSize(300, 300)
             layout = QVBoxLayout()
 
             # Título
@@ -535,6 +599,9 @@ class SessaoWindow(QDialog):
                 opacity: 80;  /* Torna o botão opaco quando desabilitado */
                 color: #808080;  /* Cor do texto mais clara para indicar desabilitado */
             }
+            QPushButton:hover {
+                background-color: #388E3C;
+            }
         """)
 
             self.btn_confirmar.clicked.connect(self.confirmar_sessao)
@@ -542,7 +609,17 @@ class SessaoWindow(QDialog):
             btn_layout.addWidget(self.btn_confirmar)
 
             btn_voltar = QPushButton("Voltar", self)
-            btn_voltar.setStyleSheet("background-color: #f44336; color: white; padding: 10px; border-radius: 5px;")
+            btn_voltar.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #D32F2F;
+            }
+        """)
             btn_voltar.clicked.connect(self.voltar)
             btn_layout.addWidget(btn_voltar)
 
@@ -659,7 +736,9 @@ class SessaoWindow(QDialog):
 
         sessao_id = self.sessao_combo.currentData()
         if sessao_id:
-            self.compra_window = CompraWindow(self.backend, self.usuario_id, self.filme_id, sessao_id, self.selected_assentos, self.app_parent, self)
+            # Garantir que usuario_id seja um inteiro
+            usuario_id = self.usuario_id if isinstance(self.usuario_id, int) else self.usuario_id[0]
+            self.compra_window = CompraWindow(self.backend, usuario_id, self.filme_id, sessao_id, self.selected_assentos, self.app_parent, self)
             self.compra_window.show()
             self.hide()
         else:
@@ -711,6 +790,7 @@ class CompraWindow(QDialog):
 
         self.layout.addWidget(QLabel("Forma de Pagamento:"))
         self.pagamento_combo = QComboBox()
+        self.pagamento_combo.setStyleSheet("color: #ffffff; font-size: 14px;")
         self.pagamento_combo.addItems(["Cartão de Crédito/Débito", "PIX", "Boleto"])
         self.pagamento_combo.currentIndexChanged.connect(self.atualizar_forma_pagamento)
         self.layout.addWidget(self.pagamento_combo)
@@ -723,7 +803,17 @@ class CompraWindow(QDialog):
         self.cartao_layout.addWidget(self.cartao_label)
 
         self.cartao_btn = QPushButton("Adicionar/Alterar Cartão")
-        self.cartao_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 8px; border-radius: 8px;")
+        self.cartao_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         self.cartao_btn.clicked.connect(self.abrir_cartao_window)
         self.cartao_layout.addWidget(self.cartao_btn)
         self.cartao_widget.setVisible(False)
@@ -733,7 +823,17 @@ class CompraWindow(QDialog):
         self.pix_widget = QWidget()
         self.pix_layout = QVBoxLayout(self.pix_widget)
         self.pix_btn = QPushButton("Gerar PIX")
-        self.pix_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 8px; border-radius: 8px;")
+        self.pix_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         self.pix_btn.clicked.connect(self.abrir_pix_window)
         self.pix_layout.addWidget(self.pix_btn)
         self.pix_widget.setVisible(False)
@@ -743,7 +843,17 @@ class CompraWindow(QDialog):
         self.boleto_widget = QWidget()
         self.boleto_layout = QVBoxLayout(self.boleto_widget)
         self.boleto_btn = QPushButton("Gerar Boleto")
-        self.boleto_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 8px; border-radius: 8px;")
+        self.boleto_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         self.boleto_btn.clicked.connect(self.abrir_boleto_window)
         self.boleto_layout.addWidget(self.boleto_btn)
         self.boleto_widget.setVisible(False)
@@ -764,6 +874,9 @@ class CompraWindow(QDialog):
                 background-color: #a34045;
                 opacity: 80;  /* Torna o botão opaco quando desabilitado */
                 color: #808080;  /* Cor do texto mais clara para indicar desabilitado */
+            }
+            QPushButton:hover {
+                background-color: #a34045;
             }
         """)
         self.layout.addWidget(self.pagar_btn)
@@ -827,30 +940,7 @@ class CompraWindow(QDialog):
         if pix_window.exec() == QDialog.Accepted:
             self.pix_confirmado = True
             self.pagar_btn.setEnabled(True)  # Habilitar o botão "Pagar" após gerar o PIX
-
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("PIX Gerado")
-            msg_box.setText("QR Code gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #ffffff;
-                    color: #000000;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #999999;
-                }
-            """)
-            msg_box.exec()
-
+            CinemaBackend.mensagem_ok(self, "PIX Gerado", "QR Code gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
         else:
             self.pagar_btn.setEnabled(False)  # Desabilitar se o usuário cancelar
 
@@ -859,7 +949,7 @@ class CompraWindow(QDialog):
         if boleto_window.exec() == QDialog.Accepted:
             self.boleto_confirmado = True
             self.pagar_btn.setEnabled(True)  # Habilitar o botão "Pagar" após gerar o boleto
-            QMessageBox.information(self, "Boleto Gerado", "Boleto gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
+            CinemaBackend.mensagem_ok(self, "Boleto Gerado", "Boleto gerado com sucesso. Clique em 'Pagar' para confirmar o pagamento.")
         else:
             self.pagar_btn.setEnabled(False)  # Desabilitar se o usuário cancelar
 
@@ -885,10 +975,43 @@ class CompraWindow(QDialog):
         print(f"Reserva retornou: sucesso={sucesso}, mensagem={mensagem}")
 
         if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
+            # Exibir mensagem de sucesso usando QMessageBox
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Sucesso")
+            msg_box.setText(mensagem)
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #2a2a2a;
+                    color: #ffffff;
+                }
+                QMessageBox QLabel {
+                    color: #ffffff;
+                }
+                QMessageBox QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
+            msg_box.exec()
+
             if not self.voltar_btn:
                 self.voltar_btn = QPushButton("Voltar para a Home")
-                self.voltar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; border-radius: 8px; padding: 8px;")
+                self.voltar_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 8px;
+                    border-radius: 8px;
+                }
+                QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
                 self.voltar_btn.clicked.connect(self.voltar_home)
                 self.layout.addWidget(self.voltar_btn)
         else:
@@ -931,7 +1054,7 @@ class CartaoWindow(QDialog):
         self.backend = backend
         self.usuario_id = usuario_id
         self.setWindowTitle("Dados do Cartão")
-        self.setGeometry(300, 300, 300, 300)
+        self.setMinimumSize(300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -969,13 +1092,44 @@ class CartaoWindow(QDialog):
 
         # Botão Salvar
         salvar_btn = QPushButton("Salvar Cartão")
-        salvar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        salvar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         salvar_btn.clicked.connect(self.salvar_cartao)
         layout.addWidget(salvar_btn)
 
         # Botão Cancelar
         cancelar_btn = QPushButton("Cancelar")
-        cancelar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cancelar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
+        salvar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         cancelar_btn.clicked.connect(self.close)
         layout.addWidget(cancelar_btn)
 
@@ -997,22 +1151,23 @@ class CartaoWindow(QDialog):
 
         # Validação dos campos
         if not nome_cartao:
-            QMessageBox.warning(self, "Erro", "Por favor, preencha o nome no cartão.")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Nome no Cartão é obrigatório!")
             return
         if not numero_cartao or len(numero_cartao) != 16 or not numero_cartao.isdigit():
-            QMessageBox.warning(self, "Erro", "O número do cartão deve conter exatamente 16 dígitos numéricos.")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Número do Cartão é obrigatório e deve conter exatamente 16 dígitos numéricos.")
             return
         if not data_expiracao or len(data_expiracao) != 5 or data_expiracao[2] != '/' or not all(c.isdigit() for c in data_expiracao.replace('/', '')):
-            QMessageBox.warning(self, "Erro", "A data de expiração deve estar no formato MM/AA (ex.: 12/25).")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo Data de Expiração é obrigatório e deve estar no formato MM/AA (ex.: 12/25).")
             return
         if not cvv or len(cvv) != 3 or not cvv.isdigit():
-            QMessageBox.warning(self, "Erro", "O CVV deve conter exatamente 3 dígitos numéricos.")
+            CinemaBackend.mensagem_ok(self, "Erro", "O campo CVV é obrigatório e deve conter exatamente 3 dígitos numéricos.")
             return
 
         # Salvar o cartão no backend
         try:
             self.backend.salvar_cartao(self.usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv)
-            QMessageBox.information(self, "Sucesso", "Cartão salvo com sucesso!")
+            CinemaBackend.mensagem_ok(self, "Sucesso", "Cartão salvo com sucesso!")
+            # QMessageBox.information(self, "Sucesso", "Cartão salvo com sucesso!")
             self.accept()  # Fecha o diálogo com sucesso
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao salvar o cartão: {str(e)}")
@@ -1022,7 +1177,7 @@ class PixWindow(QDialog):
         super().__init__(parent)
         self.total = total
         self.setWindowTitle("Pagamento via PIX")
-        self.setGeometry(300, 300, 400, 300)
+        self.setMinimumSize(300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -1049,13 +1204,33 @@ class PixWindow(QDialog):
 
         # Botão Confirmar Pagamento
         confirmar_btn = QPushButton("Confirmar Pagamento")
-        confirmar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        confirmar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         confirmar_btn.clicked.connect(self.accept)
         layout.addWidget(confirmar_btn)
 
         # Botão Cancelar
         cancelar_btn = QPushButton("Cancelar")
-        cancelar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cancelar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         cancelar_btn.clicked.connect(self.reject)
         layout.addWidget(cancelar_btn)
 
@@ -1066,7 +1241,7 @@ class BoletoWindow(QDialog):
         super().__init__(parent)
         self.total = total
         self.setWindowTitle("Pagamento via Boleto")
-        self.setGeometry(300, 300, 400, 300)
+        self.setMinimumSize(300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -1093,13 +1268,33 @@ class BoletoWindow(QDialog):
 
         # Botão Confirmar Pagamento
         confirmar_btn = QPushButton("Confirmar Pagamento")
-        confirmar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        confirmar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         confirmar_btn.clicked.connect(self.accept)
         layout.addWidget(confirmar_btn)
 
         # Botão Cancelar
         cancelar_btn = QPushButton("Cancelar")
-        cancelar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cancelar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         cancelar_btn.clicked.connect(self.reject)
         layout.addWidget(cancelar_btn)
 
@@ -1109,13 +1304,24 @@ class CinemaApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Cinema Check-in - PobreVision")
-        self.backend = CinemaBackend()
+        # Inicializar o backend como None e criar uma nova instância apenas quando necessário
+        self.backend = None
+        self.usuario_id = None
+        self.usuario_nome = None
         self.init_ui()
+
+        # Centralizar a janela após configurar o tamanho
+        self.setMinimumSize(1050, 760)  # Define um tamanho mínimo para a janela
+        CinemaBackend.center_window(self)
 
     def init_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
+
+        # Criar uma nova instância de backend apenas na inicialização
+        if self.backend is None:
+            self.backend = CinemaBackend()
 
         self.login_screen = LoginWindow(self)
         self.main_layout.addWidget(self.login_screen)
@@ -1130,28 +1336,39 @@ class CinemaApp(QMainWindow):
                 font-family: Arial, sans-serif;
             }
         """)
-        self.resize(800, 600)
+
 
     def closeEvent(self, event):
         print("Fechando a conexão com o banco de dados...")
         try:
-            # Consumir quaisquer resultados pendentes
-            while self.backend.cursor.nextset():
-                pass
-            self.backend.fechar_conexao()
+            if self.backend:
+                # Consumir quaisquer resultados pendentes
+                while self.backend.cursor.nextset():
+                    pass
+                self.backend.fechar_conexao()
+                self.backend = None
         except Exception as e:
             print(f"Erro ao fechar a conexão: {e}")
         event.accept()
 
     def show_main_window(self, usuario_id, usuario_nome):
+        print(f"Exibindo main window para usuario_id: {usuario_id}, nome: {usuario_nome}")
         self.main_layout.removeWidget(self.login_screen)
         self.login_screen.deleteLater()
 
+        # Garantir que usuario_id seja um inteiro
+        if isinstance(usuario_id, (tuple, list)):
+            usuario_id = usuario_id[0]
         self.usuario_id = usuario_id
         self.usuario_nome = usuario_nome
 
+        # Resetar o backend para uma nova instância (opcional, dependendo do caso)
+        if self.backend:
+            self.backend.fechar_conexao()
+        self.backend = CinemaBackend()
+
         self.nav_bar = QHBoxLayout()
-        self.nav_buttons = []  # Inicializar a lista de botões
+        self.nav_buttons = []  # Reiniciar a lista de botões
         self.nav_bar.addWidget(self.create_nav_icon("🏠 Home", self.show_home))
         self.nav_bar.addWidget(self.create_nav_icon("⭐ Favoritos", self.show_favoritos))
         self.nav_bar.addWidget(self.create_nav_icon("🎟️ Compras", self.show_compras))
@@ -1162,6 +1379,7 @@ class CinemaApp(QMainWindow):
         self.content_widget = QWidget()
         self.content_layout = QVBoxLayout(self.content_widget)
         self.main_layout.addWidget(self.content_widget)
+        
 
         self.show_home()
 
@@ -1196,6 +1414,12 @@ class CinemaApp(QMainWindow):
 
         if reply == QMessageBox.StandardButton.Yes:
             print("Usuário confirmou o logout.")
+            # Fechar a conexão atual do backend
+            if self.backend:
+                self.backend.fechar_conexao()
+                self.backend = None  # Resetar o backend
+
+            # Limpar o conteúdo atual
             self.clear_content()
             for i in reversed(range(self.main_layout.count())):
                 widget = self.main_layout.itemAt(i).widget()
@@ -1207,13 +1431,18 @@ class CinemaApp(QMainWindow):
                 if widget:
                     widget.deleteLater()
             
-            self.nav_buttons = []  # Limpar a lista de botões
+            # Limpar variáveis de estado
+            self.nav_buttons = []
             self.usuario_id = None
             self.usuario_nome = None
-            
+
+            # Criar uma nova instância do backend
+            self.backend = CinemaBackend()
+
+            # Recriar a tela de login
             self.login_screen = LoginWindow(self)
             self.main_layout.addWidget(self.login_screen)
-            print("Logout concluído. Tela de login exibida.")
+            print("Logout concluído. Tela de login exibida com estado reiniciado.")
         else:
             print("Logout cancelado pelo usuário.")
 

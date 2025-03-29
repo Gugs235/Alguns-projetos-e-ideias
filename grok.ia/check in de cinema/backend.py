@@ -1,19 +1,26 @@
 # backend.py
 import mysql.connector
 from database import CinemaDatabase
+from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QApplication
 
 class CinemaBackend:
     def __init__(self):
         self.db = CinemaDatabase()
         self.conn = self.db.conn
-        # Usar cursor buffered para evitar resultados pendentes
         self.cursor = self.conn.cursor(buffered=True)
+
+    # Função auxiliar para garantir que usuario_id seja um inteiro
+    def _ensure_scalar(self, value):
+        if isinstance(value, (tuple, list)):
+            return value[0]
+        return value
 
     def login_usuario(self, email, senha):
         try:
             self.cursor.execute("SELECT id, nome FROM usuarios WHERE email = %s AND senha = %s", (email, senha))
             usuario = self.cursor.fetchone()
-            return usuario  # Retorna (usuario_id, nome) ou None se não encontrar
+            return usuario  # Retorna (id, nome) ou None
         except Exception as e:
             print(f"Erro ao fazer login: {str(e)}")
             return None
@@ -41,14 +48,17 @@ class CinemaBackend:
             return False, None, f"Erro ao fazer login: {str(e)}"
 
     def get_usuario_info(self, usuario_id):
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute("SELECT nome, sobrenome, email, senha FROM usuarios WHERE id = %s", (usuario_id,))
         return self.cursor.fetchone()
 
     def get_cartao_info(self, usuario_id):
-        self.cursor.execute("SELECT nome_cartao, numero_cartao, data_expiracao, cvv FROM cartoes WHERE usuario_id = %s", (usuario_id,))
-        return self.cursor.fetchone()
+            usuario_id = self._ensure_scalar(usuario_id)
+            self.cursor.execute("SELECT nome_cartao, numero_cartao, data_expiracao, cvv FROM cartoes WHERE usuario_id = %s", (usuario_id,))
+            return self.cursor.fetchone()
 
     def salvar_cartao(self, usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv):
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute("""
             INSERT INTO cartoes (usuario_id, nome_cartao, numero_cartao, data_expiracao, cvv) 
             VALUES (%s, %s, %s, %s, %s) 
@@ -89,6 +99,7 @@ class CinemaBackend:
         return ocupados, maxima
 
     def reservar_assentos(self, usuario_id, sessao_id, assentos, forma_pagamento):
+        usuario_id = self._ensure_scalar(usuario_id)
         ocupados, maxima = self.get_lotacao_atual(sessao_id)
         print(f"Lotação atual: {ocupados}/{maxima}, Tentando reservar {len(assentos)} assentos")
         if ocupados + len(assentos) > maxima:
@@ -109,30 +120,48 @@ class CinemaBackend:
                 else:
                     raise Exception(f"Assento {assento} não encontrado para sessão {sessao_id}")
             self.conn.commit()
-            return True, f"Compra concluída! Valor total: R${valor_total:.2f}"
+            return True, f"Compra concluída! Valor total: R${valor_total:.2f}"  # Retornar apenas a string
         except Exception as e:
             self.conn.rollback()
             print(f"Erro ao reservar assentos: {e}")
             return False, f"Erro ao realizar compra: {str(e)}"
 
+    def is_favorito(self, usuario_id, filme_id):
+            """Verifica se o filme já está nos favoritos do usuário."""
+            usuario_id = self._ensure_scalar(usuario_id)
+            self.cursor.execute("SELECT COUNT(*) FROM favoritos WHERE usuario_id = %s AND filme_id = %s", (usuario_id, filme_id))
+            return self.cursor.fetchone()[0] > 0
+
     def adicionar_favorito(self, usuario_id, filme_id):
-        try:
-            self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (%s, %s)", (usuario_id, filme_id))
-            self.conn.commit()
-            print(f"Filme {filme_id} adicionado aos favoritos do usuário {usuario_id}")
-            return True, "Filme adicionado aos favoritos!"
-        except Exception as e:
-            print(f"Erro ao adicionar favorito: {str(e)}")
-            return False, f"Erro ao adicionar favorito: {str(e)}"
+            """Adiciona o filme aos favoritos se ele ainda não estiver favoritado."""
+            usuario_id = self._ensure_scalar(usuario_id)
+            if self.is_favorito(usuario_id, filme_id):
+                return False, "O filme já está nos favoritos!"
+            try:
+                self.cursor.execute("INSERT INTO favoritos (usuario_id, filme_id) VALUES (%s, %s)", (usuario_id, filme_id))
+                self.conn.commit()
+                print(f"Filme {filme_id} adicionado aos favoritos do usuário {usuario_id}")
+                return True, "Filme adicionado aos favoritos!"
+            except Exception as e:
+                print(f"Erro ao adicionar favorito: {str(e)}")
+                return False, f"Erro ao adicionar favorito: {str(e)}"
 
     def remover_favorito(self, usuario_id, filme_id):
-        self.cursor.execute("DELETE FROM favoritos WHERE usuario_id = %s AND filme_id = %s", (usuario_id, filme_id))
-        self.conn.commit()
+            """Remove o filme dos favoritos se ele estiver favoritado."""
+            usuario_id = self._ensure_scalar(usuario_id)
+            if not self.is_favorito(usuario_id, filme_id):
+                return False, "O filme não está nos favoritos!"
+            try:
+                self.cursor.execute("DELETE FROM favoritos WHERE usuario_id = %s AND filme_id = %s", (usuario_id, filme_id))
+                self.conn.commit()
+                print(f"Filme {filme_id} removido dos favoritos do usuário {usuario_id}")
+                return True, "Filme removido dos favoritos!"
+            except Exception as e:
+                print(f"Erro ao remover favorito: {str(e)}")
+                return False, f"Erro ao remover favorito: {str(e)}"
 
     def get_favoritos(self, usuario_id):
-        # Garantir que usuario_id é um valor escalar (int)
-        if isinstance(usuario_id, (tuple, list)):
-            usuario_id = usuario_id[0]
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute("""
             SELECT f.id, f.nome, f.cinema_id, f.duracao, f.data_lancamento, f.genero, f.classificacao, f.sinopse, f.trailer_url, f.poster_data 
             FROM filmes f 
@@ -143,6 +172,7 @@ class CinemaBackend:
         return favoritos
 
     def get_compras(self, usuario_id):
+        usuario_id = self._ensure_scalar(usuario_id)
         self.cursor.execute('''
             SELECT r.id, f.nome, s.data, s.horario, s.tipo_sala, c.nome, a.numero
             FROM reservas r
@@ -156,3 +186,48 @@ class CinemaBackend:
 
     def fechar_conexao(self):
         self.db.fechar_conexao()
+
+    def mensagem_ok(self,titulo,mensagem):
+        self.titulo = titulo
+        self.mensagem = mensagem
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(f"{titulo}")
+        msg_box.setText(f"{mensagem}")
+        msg_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #2a2a2a;
+                color: #ffffff;
+            }
+            QMessageBox QLabel {
+                background-color: #2a2a2a;
+                color: #ffffff;
+            }
+            QMessageBox QPushButton {
+                background-color: #ffffff;
+                color: #000000;
+                width: 70px;
+                height: 30px;
+                border-radius: 8px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #999999;
+            }
+        """)
+        msg_box.exec()
+
+    def center_window(window):
+        # Obter a geometria da tela principal
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+        screen_center = screen_geometry.center()
+
+        # Obter a geometria da janela
+        window_geometry = window.frameGeometry()
+        window_center = window_geometry.center()
+
+        # Calcular a nova posição para centralizar
+        new_x = screen_center.x() - window_geometry.width() // 2
+        new_y = screen_center.y() - window_geometry.height() // 2
+
+        # Mover a janela para o centro
+        window.move(new_x, new_y)
