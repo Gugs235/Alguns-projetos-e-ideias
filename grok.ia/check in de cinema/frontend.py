@@ -67,7 +67,18 @@ class LoginWindow(QWidget):
         self.login_btn.setMinimumSize(QSize(100, 60))
         self.login_btn.setMaximumSize(QSize(200, 80))
         self.login_btn.clicked.connect(self.show_login_form)
-        self.login_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        self.login_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
+
         buttons_layout.addWidget(self.login_btn)
 
         # Espaçador entre os botões
@@ -78,7 +89,18 @@ class LoginWindow(QWidget):
         self.cadastro_btn.setMinimumSize(QSize(100, 60))
         self.cadastro_btn.setMaximumSize(QSize(200, 80))
         self.cadastro_btn.clicked.connect(self.show_cadastro_form)
-        self.cadastro_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        self.cadastro_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
+
         buttons_layout.addWidget(self.cadastro_btn)
 
         # Centralizar o layout dos botões horizontalmente
@@ -173,13 +195,33 @@ class LoginForm(QDialog):
 
         # Botão Login
         login_btn = QPushButton("Entrar")
-        login_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        login_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         login_btn.clicked.connect(self.login)
         layout.addWidget(login_btn)
 
         # Botão Voltar
         voltar_btn = QPushButton("Voltar")
-        voltar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        voltar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         voltar_btn.clicked.connect(self.close)
         layout.addWidget(voltar_btn)
 
@@ -278,13 +320,33 @@ class CadastroForm(QDialog):
 
         # Botão Cadastrar
         cadastrar_btn = QPushButton("Cadastrar")
-        cadastrar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cadastrar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         cadastrar_btn.clicked.connect(self.cadastrar)
         layout.addWidget(cadastrar_btn)
 
         # Botão Voltar
         voltar_btn = QPushButton("Voltar")
-        voltar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        voltar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         voltar_btn.clicked.connect(self.close)
         layout.addWidget(voltar_btn)
 
@@ -369,20 +431,50 @@ class FilmeInfoWindow(QDialog):
 
             # Botão de Favoritar/Desfavoritar
             self.favoritar_btn = QPushButton("Favoritar")
-            self.favoritar_btn.setStyleSheet("background-color: #e50914; color: #ffffff;")
+            self.favoritar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+        """)
             self.atualizar_texto_botao()  # Define o texto inicial do botão
             self.favoritar_btn.clicked.connect(self.toggle_favorito)
             layout.addWidget(self.favoritar_btn)
 
             # Botão de Comprar Ingresso
             comprar_btn = QPushButton("Comprar Ingresso")
-            comprar_btn.setStyleSheet("background-color: #e50914; color: #ffffff;")
+            comprar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+            """)
             comprar_btn.clicked.connect(self.abrir_sessoes)
             layout.addWidget(comprar_btn)
 
             # Botão de Fechar
             fechar_btn = QPushButton("Fechar")
-            fechar_btn.setStyleSheet("background-color: #e50914; color: #ffffff;")
+            fechar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+        """)
             fechar_btn.clicked.connect(self.close)
             layout.addWidget(fechar_btn)
 
@@ -507,6 +599,9 @@ class SessaoWindow(QDialog):
                 opacity: 80;  /* Torna o botão opaco quando desabilitado */
                 color: #808080;  /* Cor do texto mais clara para indicar desabilitado */
             }
+            QPushButton:hover {
+                background-color: #388E3C;
+            }
         """)
 
             self.btn_confirmar.clicked.connect(self.confirmar_sessao)
@@ -514,7 +609,17 @@ class SessaoWindow(QDialog):
             btn_layout.addWidget(self.btn_confirmar)
 
             btn_voltar = QPushButton("Voltar", self)
-            btn_voltar.setStyleSheet("background-color: #f44336; color: white; padding: 10px; border-radius: 5px;")
+            btn_voltar.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #D32F2F;
+            }
+        """)
             btn_voltar.clicked.connect(self.voltar)
             btn_layout.addWidget(btn_voltar)
 
@@ -685,6 +790,7 @@ class CompraWindow(QDialog):
 
         self.layout.addWidget(QLabel("Forma de Pagamento:"))
         self.pagamento_combo = QComboBox()
+        self.pagamento_combo.setStyleSheet("color: #ffffff; font-size: 14px;")
         self.pagamento_combo.addItems(["Cartão de Crédito/Débito", "PIX", "Boleto"])
         self.pagamento_combo.currentIndexChanged.connect(self.atualizar_forma_pagamento)
         self.layout.addWidget(self.pagamento_combo)
@@ -697,7 +803,17 @@ class CompraWindow(QDialog):
         self.cartao_layout.addWidget(self.cartao_label)
 
         self.cartao_btn = QPushButton("Adicionar/Alterar Cartão")
-        self.cartao_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 8px; border-radius: 8px;")
+        self.cartao_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         self.cartao_btn.clicked.connect(self.abrir_cartao_window)
         self.cartao_layout.addWidget(self.cartao_btn)
         self.cartao_widget.setVisible(False)
@@ -707,7 +823,17 @@ class CompraWindow(QDialog):
         self.pix_widget = QWidget()
         self.pix_layout = QVBoxLayout(self.pix_widget)
         self.pix_btn = QPushButton("Gerar PIX")
-        self.pix_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 8px; border-radius: 8px;")
+        self.pix_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         self.pix_btn.clicked.connect(self.abrir_pix_window)
         self.pix_layout.addWidget(self.pix_btn)
         self.pix_widget.setVisible(False)
@@ -717,7 +843,17 @@ class CompraWindow(QDialog):
         self.boleto_widget = QWidget()
         self.boleto_layout = QVBoxLayout(self.boleto_widget)
         self.boleto_btn = QPushButton("Gerar Boleto")
-        self.boleto_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 8px; border-radius: 8px;")
+        self.boleto_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         self.boleto_btn.clicked.connect(self.abrir_boleto_window)
         self.boleto_layout.addWidget(self.boleto_btn)
         self.boleto_widget.setVisible(False)
@@ -738,6 +874,9 @@ class CompraWindow(QDialog):
                 background-color: #a34045;
                 opacity: 80;  /* Torna o botão opaco quando desabilitado */
                 color: #808080;  /* Cor do texto mais clara para indicar desabilitado */
+            }
+            QPushButton:hover {
+                background-color: #a34045;
             }
         """)
         self.layout.addWidget(self.pagar_btn)
@@ -862,7 +1001,17 @@ class CompraWindow(QDialog):
 
             if not self.voltar_btn:
                 self.voltar_btn = QPushButton("Voltar para a Home")
-                self.voltar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; border-radius: 8px; padding: 8px;")
+                self.voltar_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e50914;
+                    color: #ffffff;
+                    padding: 8px;
+                    border-radius: 8px;
+                }
+                QPushButton:hover {
+                    background-color: #a34045;
+                }
+            """)
                 self.voltar_btn.clicked.connect(self.voltar_home)
                 self.layout.addWidget(self.voltar_btn)
         else:
@@ -943,13 +1092,44 @@ class CartaoWindow(QDialog):
 
         # Botão Salvar
         salvar_btn = QPushButton("Salvar Cartão")
-        salvar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        salvar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         salvar_btn.clicked.connect(self.salvar_cartao)
         layout.addWidget(salvar_btn)
 
         # Botão Cancelar
         cancelar_btn = QPushButton("Cancelar")
-        cancelar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cancelar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
+        salvar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         cancelar_btn.clicked.connect(self.close)
         layout.addWidget(cancelar_btn)
 
@@ -1024,13 +1204,33 @@ class PixWindow(QDialog):
 
         # Botão Confirmar Pagamento
         confirmar_btn = QPushButton("Confirmar Pagamento")
-        confirmar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        confirmar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         confirmar_btn.clicked.connect(self.accept)
         layout.addWidget(confirmar_btn)
 
         # Botão Cancelar
         cancelar_btn = QPushButton("Cancelar")
-        cancelar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cancelar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         cancelar_btn.clicked.connect(self.reject)
         layout.addWidget(cancelar_btn)
 
@@ -1068,13 +1268,33 @@ class BoletoWindow(QDialog):
 
         # Botão Confirmar Pagamento
         confirmar_btn = QPushButton("Confirmar Pagamento")
-        confirmar_btn.setStyleSheet("background-color: #e50914; color: #ffffff; padding: 10px; border-radius: 8px;")
+        confirmar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #e50914;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #a34045;
+        }
+    """)
         confirmar_btn.clicked.connect(self.accept)
         layout.addWidget(confirmar_btn)
 
         # Botão Cancelar
         cancelar_btn = QPushButton("Cancelar")
-        cancelar_btn.setStyleSheet("background-color: #555555; color: #ffffff; padding: 10px; border-radius: 8px;")
+        cancelar_btn.setStyleSheet("""
+        QPushButton {
+            background-color: #777777;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+    """)
         cancelar_btn.clicked.connect(self.reject)
         layout.addWidget(cancelar_btn)
 
