@@ -143,7 +143,7 @@ class LoginForm(QDialog):
         self.backend = backend
         self.app_parent = app_parent
         self.setWindowTitle("Login")
-        self.setMinimumSize(300, 300, 300, 300)  # Definir tamanho inicial
+        self.setMinimumSize(300, 300)  # Definir tamanho inicial
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -236,7 +236,7 @@ class CadastroForm(QDialog):
         self.backend = backend
         self.app_parent = app_parent
         self.setWindowTitle("Cadastro")
-        self.setMinimumSize(300, 300, 300, 400)  # Definir tamanho inicial
+        self.setMinimumSize(300, 300)  # Definir tamanho inicial
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -333,7 +333,7 @@ class FilmeInfoWindow(QDialog):
         self.usuario_id = usuario_id  # Armazenar o usuario_id
         self.parent = parent
         self.setWindowTitle(f"Informações do Filme: {filme_nome}")
-        self.setMinimumSize(300, 300, 400, 500)
+        self.setMinimumSize(400, 450)
         self.init_ui()
 
     def init_ui(self):
@@ -438,7 +438,7 @@ class SessaoWindow(QDialog):
         self.selected_assentos = []  # Lista para armazenar os assentos selecionados
         self.assentos = {}  # Dicionário para armazenar os botões de assento
         self.setStyleSheet("background-color: #1a1a1a;")
-        self.setMinimumSize(300, 300, 600, 600)  # Definir tamanho inicial
+        self.setMinimumSize(300, 300)  # Definir tamanho inicial
         self.init_ui()
 
         CinemaBackend.center_window(self)
@@ -446,7 +446,7 @@ class SessaoWindow(QDialog):
 
     def init_ui(self):
             self.setWindowTitle("Selecionar Sessão e Assentos")
-            self.setMinimumSize(300, 300, 600, 600)
+            self.setMinimumSize(300, 300)
             layout = QVBoxLayout()
 
             # Título
@@ -861,7 +861,7 @@ class CartaoWindow(QDialog):
         self.backend = backend
         self.usuario_id = usuario_id
         self.setWindowTitle("Dados do Cartão")
-        self.setMinimumSize(300, 300, 300, 300)
+        self.setMinimumSize(300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -953,7 +953,7 @@ class PixWindow(QDialog):
         super().__init__(parent)
         self.total = total
         self.setWindowTitle("Pagamento via PIX")
-        self.setMinimumSize(300, 300, 400, 300)
+        self.setMinimumSize(300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
@@ -997,7 +997,7 @@ class BoletoWindow(QDialog):
         super().__init__(parent)
         self.total = total
         self.setWindowTitle("Pagamento via Boleto")
-        self.setMinimumSize(300, 300, 400, 300)
+        self.setMinimumSize(300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
 
