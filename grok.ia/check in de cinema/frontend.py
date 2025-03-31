@@ -11,16 +11,17 @@ import yt_dlp
 import requests
 from PySide6.QtCore import QByteArray
 from PySide6.QtGui import QPixmap
+from admin import AdminWindow
 
 class LoginWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.backend = CinemaBackend()
-        self.app_parent = parent  # Referência ao CinemaApp
-        self.login_form = None  # Referência para a instância de LoginForm
-        self.cadastro_form = None  # Referência para a instância de CadastroForm
-        self.login_btn = None  # Referência para o botão de login
-        self.cadastro_btn = None  # Referência para o botão de cadastro
+        self.app_parent = parent
+        self.login_form = None
+        self.cadastro_form = None
+        self.login_btn = None
+        self.cadastro_btn = None
         self.init_ui()
 
     def init_ui(self):
@@ -165,11 +166,9 @@ class LoginForm(QDialog):
         self.backend = backend
         self.app_parent = app_parent
         self.setWindowTitle("Login")
-        self.setMinimumSize(300, 300)  # Definir tamanho inicial
+        self.setMinimumSize(300, 300)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.init_ui()
-
-        # Centralizar a janela
         CinemaBackend.center_window(self)
 
     def init_ui(self):
@@ -228,49 +227,32 @@ class LoginForm(QDialog):
         self.setLayout(layout)
 
     def login(self):
-        email = self.email_input.text().strip()
-        senha = self.senha_input.text().strip()
+            email = self.email_input.text().strip()
+            senha = self.senha_input.text().strip()
 
-        # Validação dos campos
-        if not email:
-            CinemaBackend.mensagem_ok(self, "Erro", "O campo Email é obrigatório!")
-            return
+            # Validação dos campos
+            if not email or not senha:
+                CinemaBackend.mensagem_ok(self, "Erro", "Os campos Email e Senha são obrigatórios!")
+                return
 
-        if not senha:
-            CinemaBackend.mensagem_ok(self, "Erro", "O campo Senha é obrigatório!")
-            return
+            # Login fixo do administrador
+            if email == "admin" and senha == "admin123":
+                CinemaBackend.mensagem_ok(self, "Sucesso", "Bem-vindo, Administrador!")
+                self.close()
+                admin_window = AdminWindow(self.backend, self.app_parent)
+                admin_window.show()
+                self.app_parent.hide()  # Esconder a janela principal do usuário
+                return
 
-        # Tentar fazer login
-        usuario = self.backend.login_usuario(email, senha)
-        if usuario:
-            usuario_id, nome = usuario
-            # Criar e estilizar o QMessageBox para a mensagem de sucesso
-            CinemaBackend.mensagem_ok(self, "Sucesso", f"Login efetuado com sucesso! Bem-vindo, {nome}!")
-            self.close()
-            self.app_parent.show_main_window(usuario_id, nome)
-        else:
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Erro")
-            msg_box.setText("Email ou senha incorretos!")
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
+            # Login normal de usuário
+            usuario = self.backend.login_usuario(email, senha)
+            if usuario:
+                usuario_id, nome = usuario
+                CinemaBackend.mensagem_ok(self, "Sucesso", f"Login efetuado com sucesso! Bem-vindo, {nome}!")
+                self.close()
+                self.app_parent.show_main_window(usuario_id, nome)
+            else:
+                QMessageBox.warning(self, "Erro", "Email ou senha incorretos!")
 
 class CadastroForm(QDialog):
     def __init__(self, backend, app_parent, parent=None):

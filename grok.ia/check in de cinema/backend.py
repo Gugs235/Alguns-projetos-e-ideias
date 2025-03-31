@@ -231,3 +231,61 @@ class CinemaBackend:
 
         # Mover a janela para o centro
         window.move(new_x, new_y)
+
+    def get_cinemas_all(self):
+            self.cursor.execute("SELECT id, nome FROM cinemas")
+            return self.cursor.fetchall()
+
+    def adicionar_cinema(self, nome):
+        try:
+            self.cursor.execute("INSERT INTO cinemas (nome) VALUES (%s)", (nome,))
+            self.conn.commit()
+            return True, f"Cinema '{nome}' adicionado com sucesso!"
+        except Exception as e:
+            return False, f"Erro ao adicionar cinema: {str(e)}"
+
+    def adicionar_filme(self, nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_url):
+        try:
+            import requests
+            poster_data = None
+            if poster_url:
+                response = requests.get(poster_url, timeout=5)
+                response.raise_for_status()
+                poster_data = response.content
+
+            self.cursor.execute("""
+                INSERT INTO filmes (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (nome, cinema_id, duracao, data_lancamento, genero, classificacao, sinopse, trailer_url, poster_data))
+            self.conn.commit()
+            return True, f"Filme '{nome}' adicionado com sucesso!"
+        except Exception as e:
+            return False, f"Erro ao adicionar filme: {str(e)}"
+
+    def get_sessoes_all(self):
+        self.cursor.execute("SELECT id, filme_id, cinema_id, data, horario, tipo_sala, lotacao_maxima, preco FROM sessoes")
+        return self.cursor.fetchall()
+
+    def adicionar_sessao(self, filme_id, cinema_id, data, horario, tipo_sala, lotacao_maxima, preco):
+        try:
+            self.cursor.execute("""
+                INSERT INTO sessoes (filme_id, cinema_id, data, horario, tipo_sala, lotacao_maxima, preco)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (filme_id, cinema_id, data, horario, tipo_sala, lotacao_maxima, preco))
+            sessao_id = self.cursor.lastrowid
+
+            # Criar assentos automaticamente
+            for i in range(1, lotacao_maxima + 1):
+                self.cursor.execute("INSERT INTO assentos (sessao_id, numero, reservado) VALUES (%s, %s, %s)",
+                                    (sessao_id, f"A{i:02d}", 0))
+            self.conn.commit()
+            return True, f"Sessão adicionada com sucesso! Preço: R${preco:.2f}"
+        except Exception as e:
+            self.conn.rollback()
+            return False, f"Erro ao adicionar sessão: {str(e)}"
+        
+# Método auxiliar para obter o preço de uma sessão específica
+    def get_preco_sessao(self, sessao_id):
+        self.cursor.execute("SELECT preco FROM sessoes WHERE id = %s", (sessao_id,))
+        result = self.cursor.fetchone()
+        return result[0] if result else 20.00  # Valor padrão caso não encontre
