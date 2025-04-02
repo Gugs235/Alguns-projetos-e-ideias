@@ -98,33 +98,34 @@ class CinemaBackend:
         maxima = self.cursor.fetchone()[0]
         return ocupados, maxima
 
-    def reservar_assentos(self, usuario_id, sessao_id, assentos, forma_pagamento):
+    def reservar_assentos(self, usuario_id, sessao_id, assentos_tipos, forma_pagamento):
         usuario_id = self._ensure_scalar(usuario_id)
+        # Obter o preço base da sessão
+        self.cursor.execute('SELECT preco FROM sessoes WHERE id = %s', (sessao_id,))
+        preco_base = self.cursor.fetchone()[0]
+        
+        # Calcular o valor total com base nos tipos de ingressos
+        valor_total = 0
+        for assento_id, tipo_ingresso_id in assentos_tipos:
+            self.cursor.execute('SELECT desconto_percentual FROM tipos_ingresso WHERE id = %s', (tipo_ingresso_id,))
+            desconto = self.cursor.fetchone()[0]
+            valor_ingresso = preco_base * (1 - desconto / 100)
+            valor_total += valor_ingresso
+        
+        # Verificar lotação
         ocupados, maxima = self.get_lotacao_atual(sessao_id)
-        print(f"Lotação atual: {ocupados}/{maxima}, Tentando reservar {len(assentos)} assentos")
-        if ocupados + len(assentos) > maxima:
+        if ocupados + len(assentos_tipos) > maxima:
             return False, "Sala lotada!"
-
-        valor_total = len(assentos) * 20.0
-        try:
-            for assento in assentos:
-                self.cursor.execute("UPDATE assentos SET reservado = 1 WHERE sessao_id = %s AND numero = %s AND reservado = 0", (sessao_id, assento))
-                if self.cursor.rowcount == 0:
-                    raise Exception(f"Assento {assento} já reservado ou não existe!")
-                self.cursor.execute("SELECT id FROM assentos WHERE sessao_id = %s AND numero = %s", (sessao_id, assento))
-                assento_id = self.cursor.fetchone()
-                if assento_id:
-                    assento_id = assento_id[0]
-                    self.cursor.execute("INSERT INTO reservas (usuario_id, sessao_id, assento_id, forma_pagamento, valor_total) VALUES (%s, %s, %s, %s, %s)",
-                                        (usuario_id, sessao_id, assento_id, forma_pagamento, valor_total / len(assentos)))
-                else:
-                    raise Exception(f"Assento {assento} não encontrado para sessão {sessao_id}")
-            self.conn.commit()
-            return True, f"Compra concluída! Valor total: R${valor_total:.2f}"  # Retornar apenas a string
-        except Exception as e:
-            self.conn.rollback()
-            print(f"Erro ao reservar assentos: {e}")
-            return False, f"Erro ao realizar compra: {str(e)}"
+        
+        # Inserir reservas
+        for assento_id, tipo_ingresso_id in assentos_tipos:
+            self.cursor.execute('''
+                INSERT INTO reservas (usuario_id, sessao_id, assento_id, tipo_ingresso_id, forma_pagamento, valor_total)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            ''', (usuario_id, sessao_id, assento_id, tipo_ingresso_id, forma_pagamento, valor_total))
+        
+        self.conn.commit()
+        return True, "Reserva realizada com sucesso!"
 
     def is_favorito(self, usuario_id, filme_id):
             """Verifica se o filme já está nos favoritos do usuário."""
@@ -289,3 +290,7 @@ class CinemaBackend:
         self.cursor.execute("SELECT preco FROM sessoes WHERE id = %s", (sessao_id,))
         result = self.cursor.fetchone()
         return result[0] if result else 20.00  # Valor padrão caso não encontre
+    
+    def get_tipos_ingresso(self):
+        self.cursor.execute('SELECT id, nome, desconto_percentual FROM tipos_ingresso')
+        return self.cursor.fetchall()

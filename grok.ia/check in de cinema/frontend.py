@@ -671,17 +671,31 @@ class SessaoWindow(QDialog):
                     """)
                     btn.setEnabled(False)
                 self.assentos[assento] = btn
-                self.assentos_grid.addWidget(btn, idx // 5, idx % 5)
+                self.assentos_grid.addWidget(btn, idx // 5, idx % 5)  # Adiciona o botão na grade
 
             self.assentos_grid.setSpacing(10)
 
     def selecionar_assento(self, assento):
-            btn = self.assentos[assento]
-            is_selected = "yellow" in btn.styleSheet()
-            if is_selected:
+        btn = self.assentos[assento]
+        is_selected = "yellow" in btn.styleSheet()
+        if is_selected:
+            btn.setStyleSheet("""
+                background-color: green;
+                color: white;
+                border-radius: 5px;
+                min-width: 50px;
+                min-height: 50px;
+                width: 50px;
+                height: 50px;
+                font-size: 14px;
+            """)
+            if assento in self.selected_assentos:
+                self.selected_assentos.remove(assento)
+        else:
+            if assento not in self.selected_assentos:  # Apenas verifica se o assento já foi selecionado
                 btn.setStyleSheet("""
-                    background-color: green;
-                    color: white;
+                    background-color: yellow;
+                    color: black;
                     border-radius: 5px;
                     min-width: 50px;
                     min-height: 50px;
@@ -689,27 +703,13 @@ class SessaoWindow(QDialog):
                     height: 50px;
                     font-size: 14px;
                 """)
-                if assento in self.selected_assentos:
-                    self.selected_assentos.remove(assento)
+                self.selected_assentos.append(assento)
             else:
-                if assento not in self.selected_assentos and len(self.selected_assentos) < 10:
-                    btn.setStyleSheet("""
-                        background-color: yellow;
-                        color: black;
-                        border-radius: 5px;
-                        min-width: 50px;
-                        min-height: 50px;
-                        width: 50px;
-                        height: 50px;
-                        font-size: 14px;
-                    """)
-                    self.selected_assentos.append(assento)
-                else:
-                    QMessageBox.warning(self, "Erro", "Assento já selecionado ou limite de 10 assentos atingido!")
-                    return
+                QMessageBox.warning(self, "Erro", "Assento já selecionado!")
+                return
 
-            # Habilitar o botão de confirmar se houver assentos selecionados
-            self.btn_confirmar.setEnabled(len(self.selected_assentos) > 0)
+        # Habilitar o botão de confirmar se houver assentos selecionados
+        self.btn_confirmar.setEnabled(len(self.selected_assentos) > 0)
 
     def confirmar_sessao(self):
         if not self.selected_assentos:
@@ -737,6 +737,76 @@ class SessaoWindow(QDialog):
             return
         self.compra_window = CompraWindow(self.backend, self.usuario_id, self.filme_id, self.selected_sessao_id, self.selected_assentos, self)
         self.compra_window.exec()
+
+    def confirmar_compra(self):
+        self.clear_content()
+        scroll = QScrollArea()
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll.setWidget(scroll_content)
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("background-color: transparent; border: none;")
+
+        confirm_section = QWidget()
+        confirm_layout = QVBoxLayout(confirm_section)
+        confirm_layout.addWidget(QLabel("Confirmação de Compra"))
+
+        # Lista de assentos com dropdown para tipo de ingresso
+        self.assentos_tipos = {}
+        for assento in self.selected_assentos:
+            row_layout = QHBoxLayout()
+            row_layout.addWidget(QLabel(f"Assento {assento}:"))
+            combo = QComboBox()
+            for tipo in self.backend.get_tipos_ingresso():
+                combo.addItem(tipo[1], tipo[0])  # nome e id
+            row_layout.addWidget(combo)
+            confirm_layout.addLayout(row_layout)
+            self.assentos_tipos[assento] = combo
+
+        # Botão para calcular o valor total
+        self.btn_calcular = QPushButton("Calcular Valor Total")
+        self.btn_calcular.clicked.connect(self.calcular_valor_total)
+        confirm_layout.addWidget(self.btn_calcular)
+
+        # Label para exibir o valor total
+        self.valor_total_label = QLabel("Valor Total: R$ 0.00")
+        confirm_layout.addWidget(self.valor_total_label)
+
+        # Botão para finalizar a compra
+        self.btn_finalizar = QPushButton("Finalizar Compra")
+        self.btn_finalizar.clicked.connect(self.confirmar_pagamento)  # Chama confirmar_pagamento
+        confirm_layout.addWidget(self.btn_finalizar)
+
+        scroll_layout.addWidget(confirm_section)
+        self.content_layout.addWidget(scroll)
+
+    def calcular_valor_total(self):
+        self.backend.cursor.execute('SELECT preco FROM sessoes WHERE id = %s', (self.sessao_id,))
+        preco_base = self.backend.cursor.fetchone()[0]
+
+        valor_total = 0
+        for assento, combo in self.assentos_tipos.items():
+            tipo_ingresso_id = combo.currentData()
+            self.backend.cursor.execute('SELECT desconto_percentual FROM tipos_ingresso WHERE id = %s', (tipo_ingresso_id,))
+            desconto = self.backend.cursor.fetchone()[0]
+            valor_ingresso = preco_base * (1 - desconto / 100)
+            valor_total += valor_ingresso
+
+        self.valor_total_label.setText(f"Valor Total: R$ {valor_total:.2f}")
+
+    def finalizar_compra(self):
+        assentos_tipos = []
+        for assento, combo in self.assentos_tipos.items():
+            tipo_ingresso_id = combo.currentData()
+            assentos_tipos.append((assento, tipo_ingresso_id))
+
+        forma_pagamento = "Cartão de Crédito/Débito"  # Pode ser dinâmico se você adicionar um campo para isso
+        success, message = self.backend.reservar_assentos(self.usuario_id, self.sessao_id, assentos_tipos, forma_pagamento)
+        if success:
+            QMessageBox.information(self, "Sucesso", message)
+            self.close()
+        else:
+            QMessageBox.warning(self, "Erro", message)
 
 class CompraWindow(QDialog):
     def __init__(self, backend, usuario_id, filme_id, sessao_id, assentos, app_parent, parent=None):
@@ -1517,14 +1587,37 @@ class CinemaApp(QMainWindow):
         compras_section = QWidget()
         compras_layout = QVBoxLayout(compras_section)
         compras_layout.addWidget(QLabel("Minhas Compras"))
+
+        header_label = QLabel("Filme | Data | Horário | Tipo de Sala | Cinema | Assento | Tipo de Ingresso")
+        header_label.setStyleSheet("font-weight: bold; color: #ffffff;")
+        compras_layout.addWidget(header_label)
+
         grid_compras = QGridLayout()
-        compras = self.backend.get_compras(self.usuario_id)
-        for idx, compra in enumerate(compras):
-            compra_label = QLabel(f"{compra[1]} - {compra[2]} - {compra[3]} - Assento: {compra[4]}")
-            grid_compras.addWidget(compra_label, idx, 0)
+        self.backend.cursor.execute('''
+            SELECT r.id, f.nome, s.data, s.horario, s.tipo_sala, c.nome, a.numero, ti.nome
+            FROM reservas r
+            JOIN sessoes s ON r.sessao_id = s.id
+            JOIN filmes f ON s.filme_id = f.id
+            JOIN cinemas c ON s.cinema_id = c.id
+            JOIN assentos a ON r.assento_id = a.id
+            JOIN tipos_ingresso ti ON r.tipo_ingresso_id = ti.id
+            WHERE r.usuario_id = %s
+        ''', (self.usuario_id,))
+        compras = self.backend.cursor.fetchall()
+        if not compras:
+            no_compras_label = QLabel("Nenhuma compra realizada ainda.")
+            no_compras_label.setStyleSheet("color: #ffffff;")
+            compras_layout.addWidget(no_compras_label)
+        else:
+            for idx, compra in enumerate(compras):
+                filme_nome, data, horario, tipo_sala, cinema_nome, assento_numero, tipo_ingresso = compra[1:]
+                compra_text = f"{filme_nome} - {data} - {horario} - {tipo_sala} - {cinema_nome} - Assento: {assento_numero} - {tipo_ingresso}"
+                compra_label = QLabel(compra_text)
+                compra_label.setStyleSheet("color: #ffffff;")
+                grid_compras.addWidget(compra_label, idx, 0)
+
         compras_layout.addLayout(grid_compras)
         scroll_layout.addWidget(compras_section)
-
         self.content_layout.addWidget(scroll)
 
     def show_perfil(self):
