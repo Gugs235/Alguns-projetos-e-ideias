@@ -51,6 +51,11 @@ CREATE TABLE sessoes (
     FOREIGN KEY (id_sala) REFERENCES salas (id)
 );
 
+ALTER TABLE sessoes
+ADD COLUMN preco DECIMAL(10,2) NOT NULL DEFAULT 20.00;
+
+UPDATE sessoes SET preco = 20.00 WHERE preco IS NULL;
+
 CREATE TABLE assentos (
     id INT NOT NULL AUTO_INCREMENT,
     id_sala INT NOT NULL,
@@ -107,6 +112,22 @@ CREATE TABLE cartoes (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
+CREATE TABLE tipos_ingresso (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    desconto_percentual DECIMAL(5,2) NOT NULL DEFAULT 0.00
+);
+
+ALTER TABLE reservas
+ADD COLUMN tipo_ingresso_id INT,
+ADD CONSTRAINT fk_tipo_ingresso FOREIGN KEY (tipo_ingresso_id) REFERENCES tipos_ingresso(id);
+
+INSERT INTO tipos_ingresso (nome, desconto_percentual) VALUES 
+('Inteira', 0.00),
+('Meia-Entrada', 50.00),
+('Idoso', 50.00),
+('Professor', 30.00);
+
 SELECT * FROM usuarios;
 SELECT * FROM filmes;
 SELECT * FROM favoritos;
@@ -114,4 +135,6 @@ SELECT * FROM favoritos;
 
 SET SQL_SAFE_UPDATES = 1;
 #drop database Checkin_Cinema;
+
 DESCRIBE cartoes;
+DESCRIBE sessoes;
