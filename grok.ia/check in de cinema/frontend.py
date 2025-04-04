@@ -718,7 +718,6 @@ class SessaoWindow(QDialog):
 
         sessao_id = self.sessao_combo.currentData()
         if sessao_id:
-            # Garantir que usuario_id seja um inteiro
             usuario_id = self.usuario_id if isinstance(self.usuario_id, int) else self.usuario_id[0]
             self.compra_window = CompraWindow(self.backend, usuario_id, self.filme_id, sessao_id, self.selected_assentos, self.app_parent, self)
             self.compra_window.show()
@@ -781,18 +780,16 @@ class SessaoWindow(QDialog):
         self.content_layout.addWidget(scroll)
 
     def calcular_valor_total(self):
-        self.backend.cursor.execute('SELECT preco FROM sessoes WHERE id = %s', (self.sessao_id,))
-        preco_base = self.backend.cursor.fetchone()[0]
-
+        preco_base = self.backend.get_preco_sessao(self.sessao_id)
         valor_total = 0
         for assento, combo in self.assentos_tipos.items():
             tipo_ingresso_id = combo.currentData()
             self.backend.cursor.execute('SELECT desconto_percentual FROM tipos_ingresso WHERE id = %s', (tipo_ingresso_id,))
-            desconto = self.backend.cursor.fetchone()[0]
+            desconto = self.backend.cursor.fetchone()[0] or 0.0
             valor_ingresso = preco_base * (1 - desconto / 100)
             valor_total += valor_ingresso
-
         self.valor_total_label.setText(f"Valor Total: R$ {valor_total:.2f}")
+        self.total = valor_total  # Atualizar o valor total para uso em PIX/Boleto
 
     def finalizar_compra(self):
         assentos_tipos = []
@@ -815,12 +812,13 @@ class CompraWindow(QDialog):
         self.usuario_id = usuario_id
         self.filme_id = filme_id
         self.sessao_id = sessao_id
-        self.assentos = assentos
+        self.assentos = assentos  # Lista de números de assento (ex.: "A01", "A02")
         self.app_parent = app_parent
         self.cartao_info = None
         self.voltar_btn = None
         self.pix_confirmado = False
         self.boleto_confirmado = False
+        self.assentos_tipos = {}  # Dicionário para armazenar tipo de ingresso por assento
         self.pagar_btn = None  # Referência ao botão "Pagar"
         self.setWindowTitle("Confirmar Compra")
         self.init_ui()
@@ -830,15 +828,33 @@ class CompraWindow(QDialog):
 
         filme_info = self.backend.get_filme_info(self.filme_id)
         sessao_info = next(s for s in self.backend.get_sessoes_info(self.filme_id) if s[0] == self.sessao_id)
-        valor_por_assento = 20.0
-        self.total = len(self.assentos) * valor_por_assento
+        preco_base = self.backend.get_preco_sessao(self.sessao_id)
 
         self.layout.addWidget(QLabel(f"Filme: {filme_info[1]}"))
         self.layout.addWidget(QLabel(f"Data e Horário: {sessao_info[1]} às {sessao_info[2]} ({sessao_info[3]})"))
         self.layout.addWidget(QLabel(f"Duração: {filme_info[3]}"))
-        self.layout.addWidget(QLabel(f"Assentos Selecionados: {', '.join(self.assentos)}"))
-        self.layout.addWidget(QLabel(f"Valor por Assento: R${valor_por_assento:.2f}"))
-        self.layout.addWidget(QLabel(f"Total: R${self.total:.2f}"))
+        assentos_text = ", ".join(self.assentos)
+        self.layout.addWidget(QLabel(f"Assentos Selecionados: {assentos_text}"))
+
+        # Seleção de tipo de ingresso por assento
+        self.layout.addWidget(QLabel("Tipo de Ingresso por Assento:"))
+        tipos_ingresso = self.backend.get_tipos_ingresso()
+        for assento in self.assentos:
+            assento_layout = QHBoxLayout()
+            assento_layout.addWidget(QLabel(f"Assento {assento}:"))
+            combo = QComboBox()
+            combo.setStyleSheet("color: #ffffff; font-size: 14px;")
+            for tipo in tipos_ingresso:
+                combo.addItem(f"{tipo[1]} ({tipo[2]}% desc.)", tipo[0])
+            combo.currentIndexChanged.connect(self.calcular_valor_total)
+            assento_layout.addWidget(combo)
+            self.assentos_tipos[assento] = combo
+            self.layout.addLayout(assento_layout)
+
+        # Exibir valor total
+        self.valor_total_label = QLabel("Valor Total: R$ 0.00")
+        self.layout.addWidget(self.valor_total_label)
+        self.calcular_valor_total()  # Calcular inicialmente
 
         self.layout.addWidget(QLabel("Forma de Pagamento:"))
         self.pagamento_combo = QComboBox()
@@ -853,65 +869,63 @@ class CompraWindow(QDialog):
         self.cartao_label = QLabel("Nenhum cartão cadastrado.")
         self.cartao_label.setStyleSheet("color: #ffffff; font-size: 14px;")
         self.cartao_layout.addWidget(self.cartao_label)
-
         self.cartao_btn = QPushButton("Adicionar/Alterar Cartão")
         self.cartao_btn.setStyleSheet("""
-        QPushButton {
-            background-color: #e50914;
-            color: #ffffff;
-            padding: 8px;
-            border-radius: 8px;
-        }
-        QPushButton:hover {
-            background-color: #a34045;
-        }
-    """)
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 8px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+        """)
         self.cartao_btn.clicked.connect(self.abrir_cartao_window)
         self.cartao_layout.addWidget(self.cartao_btn)
         self.cartao_widget.setVisible(False)
         self.layout.addWidget(self.cartao_widget)
 
-        # Widget para exibir botão de PIX
+        # Widget para PIX e Boleto (mantido como antes)
         self.pix_widget = QWidget()
         self.pix_layout = QVBoxLayout(self.pix_widget)
         self.pix_btn = QPushButton("Gerar PIX")
-        self.pix_btn.setStyleSheet("""
-        QPushButton {
-            background-color: #e50914;
-            color: #ffffff;
-            padding: 8px;
-            border-radius: 8px;
-        }
-        QPushButton:hover {
-            background-color: #a34045;
-        }
-    """)
         self.pix_btn.clicked.connect(self.abrir_pix_window)
+        self.pix_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 8px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+        """)
         self.pix_layout.addWidget(self.pix_btn)
         self.pix_widget.setVisible(False)
         self.layout.addWidget(self.pix_widget)
 
-        # Widget para exibir botão de Boleto
         self.boleto_widget = QWidget()
         self.boleto_layout = QVBoxLayout(self.boleto_widget)
         self.boleto_btn = QPushButton("Gerar Boleto")
-        self.boleto_btn.setStyleSheet("""
-        QPushButton {
-            background-color: #e50914;
-            color: #ffffff;
-            padding: 8px;
-            border-radius: 8px;
-        }
-        QPushButton:hover {
-            background-color: #a34045;
-        }
-    """)
         self.boleto_btn.clicked.connect(self.abrir_boleto_window)
+        self.boleto_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e50914;
+                color: #ffffff;
+                padding: 8px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #a34045;
+            }
+        """)
         self.boleto_layout.addWidget(self.boleto_btn)
         self.boleto_widget.setVisible(False)
         self.layout.addWidget(self.boleto_widget)
 
-        # Botão Pagar (inicialmente desabilitado para PIX e Boleto)
+        # Botão Pagar
         self.pagar_btn = QPushButton("Pagar")
         self.pagar_btn.clicked.connect(self.confirmar_pagamento)
         self.pagar_btn.setStyleSheet("""
@@ -924,8 +938,8 @@ class CompraWindow(QDialog):
             }
             QPushButton:disabled {
                 background-color: #a34045;
-                opacity: 80;  /* Torna o botão opaco quando desabilitado */
-                color: #808080;  /* Cor do texto mais clara para indicar desabilitado */
+                opacity: 80;
+                color: #808080;
             }
             QPushButton:hover {
                 background-color: #a34045;
@@ -949,9 +963,8 @@ class CompraWindow(QDialog):
                 padding: 8px;
             }
         """)
-        self.setFixedSize(400, 500)
+        self.setFixedSize(400, 600)
 
-        # Verificar se já existe um cartão cadastrado e ajustar o estado do botão "Pagar"
         self.atualizar_forma_pagamento()
 
     def atualizar_forma_pagamento(self):
@@ -1007,53 +1020,32 @@ class CompraWindow(QDialog):
 
     def confirmar_pagamento(self):
         forma_pagamento = self.pagamento_combo.currentText()
-        print(f"Forma de pagamento selecionada: {forma_pagamento}")
 
-        if forma_pagamento == "Cartão de Crédito/Débito":
-            if not self.cartao_info:
-                QMessageBox.warning(self, "Erro", "Nenhum cartão cadastrado. Por favor, adicione um cartão antes de prosseguir.")
-                return
-        elif forma_pagamento == "PIX":
-            if not self.pix_confirmado:
-                QMessageBox.warning(self, "Erro", "Por favor, gere o PIX e confirme o pagamento antes de prosseguir.")
-                return
-        elif forma_pagamento == "Boleto":
-            if not self.boleto_confirmado:
-                QMessageBox.warning(self, "Erro", "Por favor, gere o boleto e confirme o pagamento antes de prosseguir.")
-                return
+        if forma_pagamento == "Cartão de Crédito/Débito" and not self.cartao_info:
+            QMessageBox.warning(self, "Erro", "Nenhum cartão cadastrado.")
+            return
+        elif forma_pagamento == "PIX" and not self.pix_confirmado:
+            QMessageBox.warning(self, "Erro", "Por favor, gere o PIX antes de prosseguir.")
+            return
+        elif forma_pagamento == "Boleto" and not self.boleto_confirmado:
+            QMessageBox.warning(self, "Erro", "Por favor, gere o boleto antes de prosseguir.")
+            return
 
-        print("Reservando assentos...")
-        sucesso, mensagem = self.backend.reservar_assentos(self.usuario_id, self.sessao_id, self.assentos, forma_pagamento)
-        print(f"Reserva retornou: sucesso={sucesso}, mensagem={mensagem}")
+        # Preparar lista de assentos com tipos de ingresso
+        assentos_tipos = []
+        for assento in self.assentos:
+            combo = self.assentos_tipos[assento]
+            tipo_ingresso_id = combo.currentData()
+            # Obter o ID do assento a partir do número
+            self.backend.cursor.execute("SELECT id FROM assentos WHERE sessao_id = %s AND numero = %s", (self.sessao_id, assento))
+            assento_id = self.backend.cursor.fetchone()[0]
+            assentos_tipos.append((assento_id, tipo_ingresso_id))
 
+        sucesso, mensagem = self.backend.reservar_assentos(self.usuario_id, self.sessao_id, assentos_tipos, forma_pagamento)
         if sucesso:
-            # Exibir mensagem de sucesso usando QMessageBox
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Sucesso")
-            msg_box.setText(mensagem)
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #2a2a2a;
-                    color: #ffffff;
-                }
-                QMessageBox QLabel {
-                    color: #ffffff;
-                }
-                QMessageBox QPushButton {
-                    background-color: #e50914;
-                    color: #ffffff;
-                    padding: 10px;
-                    border-radius: 8px;
-                }
-                QMessageBox QPushButton:hover {
-                    background-color: #a34045;
-                }
-            """)
-            msg_box.exec()
-
-            if not self.voltar_btn:
-                self.voltar_btn = QPushButton("Voltar para a Home")
-                self.voltar_btn.setStyleSheet("""
+            QMessageBox.information(self, "Sucesso", mensagem)
+            self.voltar_btn = QPushButton("Voltar para a Home")
+            self.voltar_btn.setStyleSheet("""
                 QPushButton {
                     background-color: #e50914;
                     color: #ffffff;
@@ -1064,8 +1056,8 @@ class CompraWindow(QDialog):
                     background-color: #a34045;
                 }
             """)
-                self.voltar_btn.clicked.connect(self.voltar_home)
-                self.layout.addWidget(self.voltar_btn)
+            self.voltar_btn.clicked.connect(self.voltar_home)
+            self.layout.addWidget(self.voltar_btn)
         else:
             QMessageBox.critical(self, "Erro", mensagem)
 
