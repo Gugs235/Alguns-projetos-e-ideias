@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGrowth</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>MyGrowth</h1>
+        <nav>
+            <a href="#home">Início</a>
+            <a href="#habits">Hábitos</a>
+            <a href="#achievements">Conquistas</a>
+        </nav>
+    </header>
+    <main>
+        <section id="add-habit">
+            <h2>Adicionar Hábito</h2>
+            <form id="habit-form">
+                <input type="text" id="habit-name" placeholder="Nome do hábito" required>
+                <select id="habit-frequency">
+                    <option value="daily">Diário</option>
+                    <option value="weekly">Semanal</option>
+                </select>
+                <input type="number" id="habit-goal" placeholder="Meta semanal" required>
+                <button type="submit">Adicionar</button>
+            </form>
+        </section>
+        <section id="habits">
+            <h2>Meus Hábitos</h2>
+            <div id="habit-list"></div>
+        </section>
+        <section id="achievements">
+            <h2>Conquistas</h2>
+            <div id="achievement-list"></div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
