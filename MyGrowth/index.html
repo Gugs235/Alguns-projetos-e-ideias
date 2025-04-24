@@ -3,40 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGrowth</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>MyGrowth - Diário de Hábitos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            background: #007bff;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            padding: 20px;
+        }
+
+        /* Formulário */
+        .habit-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Cards de Hábitos */
+        .habit-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        /* Seção de Gamificação */
+        .gamification {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #ffc107;
+            border-radius: 15px;
+            margin: 5px;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>MyGrowth</h1>
         <nav>
-            <a href="#home">Início</a>
-            <a href="#habits">Hábitos</a>
-            <a href="#achievements">Conquistas</a>
+            <h1>MyGrowth</h1>
+            <div id="level">Nível 1</div>
         </nav>
     </header>
-    <main>
-        <section id="add-habit">
-            <h2>Adicionar Hábito</h2>
-            <form id="habit-form">
-                <input type="text" id="habit-name" placeholder="Nome do hábito" required>
-                <select id="habit-frequency">
-                    <option value="daily">Diário</option>
-                    <option value="weekly">Semanal</option>
+
+    <div class="container">
+        <!-- Formulário de Hábitos -->
+        <form class="habit-form" id="habitForm">
+            <div class="form-group">
+                <input type="text" id="habitName" placeholder="Nome do hábito" required>
+            </div>
+            <div class="form-group">
+                <select id="habitFrequency">
+                    <option value="diario">Diário</option>
+                    <option value="semanal">Semanal</option>
                 </select>
-                <input type="number" id="habit-goal" placeholder="Meta semanal" required>
-                <button type="submit">Adicionar</button>
-            </form>
-        </section>
-        <section id="habits">
-            <h2>Meus Hábitos</h2>
-            <div id="habit-list"></div>
-        </section>
-        <section id="achievements">
+            </div>
+            <div class="form-group">
+                <input type="number" id="habitGoal" min="1" max="7" placeholder="Meta semanal" required>
+            </div>
+            <button type="submit">Adicionar Hábito</button>
+        </form>
+
+        <!-- Lista de Hábitos -->
+        <div id="habitsList"></div>
+
+        <!-- Gamificação -->
+        <div class="gamification">
             <h2>Conquistas</h2>
-            <div id="achievement-list"></div>
-        </section>
-    </main>
-    <script src="script.js"></script>
+            <div id="achievements"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de Armazenamento
+        let habits = JSON.parse(localStorage.getItem('habits')) || [];
+        let points = parseInt(localStorage.getItem('points')) || 0;
+        let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHabits();
+            updateGamification();
+        });
+
+        // Adicionar Hábito
+        document.getElementById('habitForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newHabit = {
+                id: Date.now(),
+                name: document.getElementById('habitName').value,
+                frequency: document.getElementById('habitFrequency').value,
+                goal: parseInt(document.getElementById('habitGoal').value),
+                progress: 0,
+                lastUpdated: null
+            };
+
+            habits.push(newHabit);
+            saveData();
+            renderHabits();
+            e.target.reset();
+        });
+
+        // Renderizar Hábitos
+        function renderHabits() {
+            const container = document.getElementById('habitsList');
+            container.innerHTML = '';
+
+            habits.forEach(habit => {
+                const card = document.createElement('div');
+                card.className = 'habit-card';
+                card.innerHTML = `
+                    <h3>${habit.name}</h3>
+                    <p>Progresso: ${habit.progress}/${habit.goal}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(habit.progress/habit.goal)*100}%"></div>
+                    </div>
+                    <input type="checkbox" ${isToday(habit.lastUpdated) ? 'checked' : ''} 
+                           onchange="updateProgress(${habit.id}, this.checked)">
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Atualizar Progresso
+        window.updateProgress = (id, completed) => {
+            const habit = habits.find(h => h.id === id);
+            if (completed) {
+                habit.progress = Math.min(habit.progress + 1, habit.goal);
+                points += 10;
+                checkAchievements();
+            }
+            habit.lastUpdated = new Date().toISOString();
+            saveData();
+            updateGamification();
+            renderHabits();
+        }
+
+        // Sistema de Gamificação
+        function updateGamification() {
+            const level = Math.floor(points / 100);
+            document.getElementById('level').textContent = `Nível ${level}`;
+        }
+
+        function checkAchievements() {
+            // Implementar lógica de conquistas
+        }
+
+        // Utilitários
+        function isToday(dateString) {
+            if (!dateString) return false;
+            const date = new Date(dateString);
+            const today = new Date();
+            return date.toDateString() === today.toDateString();
+        }
+
+        function saveData() {
+            localStorage.setItem('habits', JSON.stringify(habits));
+            localStorage.setItem('points', points.toString());
+            localStorage.setItem('achievements', JSON.stringify(achievements));
+        }
+    </script>
 </body>
 </html>
