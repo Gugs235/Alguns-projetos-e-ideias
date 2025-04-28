@@ -41,16 +41,43 @@
             margin: 0 auto;
         }
 
-        nav a {
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-tabs a {
             color: white;
             text-decoration: none;
-            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-tabs a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-tabs a.active {
+            background: white;
+            color: #007bff;
         }
 
         .container {
             max-width: 1200px;
             margin: 80px auto 20px;
             padding: 20px;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
         }
 
         .habit-form {
@@ -142,24 +169,39 @@
             border-radius: 5px;
         }
 
-        .gamification {
+        .achievements-summary {
             background: white;
             padding: 20px;
             border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
             margin-top: 20px;
         }
 
         .badge {
-            display: inline-block;
-            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
             background: #ffc107;
-            border-radius: 15px;
-            margin: 5px;
+            border-radius: 10px;
             font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .badge.locked {
+            background: #6c757d;
+            opacity: 0.7;
         }
 
         .badge i {
-            margin-right: 5px;
+            margin-right: 8px;
+            font-size: 1.2rem;
         }
 
         .reset-section {
@@ -220,13 +262,17 @@
                 padding: 10px;
             }
 
-            nav a {
-                margin: 0 0.5rem;
+            .nav-tabs a {
+                padding: 0.5rem;
                 font-size: 0.9rem;
             }
 
             .habit-card {
                 padding: 10px;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -235,24 +281,33 @@
     <header>
         <nav>
             <h1>MyGrowth</h1>
-            <div>
-                <a href="#home">Início</a>
-                <a href="#habits">Hábitos</a>
-                <a href="#achievements">Conquistas</a>
+            <div class="nav-tabs">
+                <a href="#home" class="tab-link active" data-tab="home">Início</a>
+                <a href="#habits" class="tab-link" data-tab="habits">Hábitos</a>
+                <a href="#achievements" class="tab-link" data-tab="achievements">Conquistas</a>
             </div>
             <div>Pontos: <span id="points">0</span> | Nível: <span id="level">1</span></div>
         </nav>
     </header>
 
     <div class="container">
-        <section id="home" class="daily-summary">
+        <!-- Tela de Início -->
+        <section id="home" class="tab-content active">
             <h2>Resumo Diário</h2>
-            <div id="dailySummary"></div>
+            <div id="dailySummary" class="daily-summary"></div>
+            <h2>Meus Hábitos</h2>
+            <div id="habitsList"></div>
+            <h2>Conquistas</h2>
+            <div id="achievementsSummary" class="achievements-summary"></div>
+            <div class="reset-section">
+                <button id="resetButton">Reiniciar Tudo</button>
+            </div>
         </section>
 
-        <section id="habits" class="habit-form">
+        <!-- Tela de Hábitos -->
+        <section id="habits" class="tab-content">
             <h2>Adicionar Hábito</h2>
-            <form id="habitForm">
+            <form id="habitForm" class="habit-form">
                 <div class="form-group">
                     <label for="habitName">Nome do hábito</label>
                     <input type="text" id="habitName" placeholder="Ex.: Comer" maxlength="50" required>
@@ -279,18 +334,10 @@
             </form>
         </section>
 
-        <section>
-            <h2>Meus Hábitos</h2>
-            <div id="habitsList"></div>
-        </section>
-
-        <section id="achievements" class="gamification">
-            <h2>Conquistas</h2>
-            <div id="achievementsList"></div>
-        </section>
-
-        <section class="reset-section">
-            <button id="resetButton">Reiniciar Tudo</button>
+        <!-- Tela de Conquistas -->
+        <section id="achievements" class="tab-content">
+            <h2>Minhas Conquistas</h2>
+            <div id="achievementsList" class="achievements-grid"></div>
         </section>
     </div>
 
@@ -299,20 +346,48 @@
         let points = parseInt(localStorage.getItem('points')) || 0;
         let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
         let consecutiveDays = JSON.parse(localStorage.getItem('consecutiveDays')) || 0;
-        let currentDate = new Date().toDateString(); // Rastreia o dia atual
+        let currentDate = localStorage.getItem('currentDate') || new Date().toDateString();
 
         if (points < 0 || points > habits.length * 10 * 1000) {
             points = 0;
             localStorage.setItem('points', '0');
         }
 
+        // Lista de conquistas possíveis
+        const allAchievements = [
+            { name: 'Primeiro Passo', icon: '<i class="fas fa-shoe-prints"></i>', requirement: 'Complete 1 execução de qualquer hábito', condition: habit => habit.progress >= 1 },
+            { name: 'Meta Semanal', icon: '<i class="fas fa-check-circle"></i>', requirement: 'Complete 7 execuções semanais de um hábito', condition: habit => habit.progress >= habit.dailyExecutions * 7 },
+            { name: '5 Dias Seguidos', icon: '<i class="fas fa-fire"></i>', requirement: 'Mantenha 5 dias consecutivos de progresso', condition: () => consecutiveDays >= 5 }
+        ];
+
         document.addEventListener('DOMContentLoaded', () => {
             resetWeeklyProgress();
+            setupTabs();
             renderHabits();
             renderDailySummary();
+            renderAchievementsSummary();
+            renderAchievements();
             updateGamification();
             startTimeReminders();
         });
+
+        // Configuração das abas
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab-link');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
 
         document.getElementById('habitForm').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -354,7 +429,7 @@
                 dailyExecutions,
                 times: timesArray,
                 progress: 0,
-                dailyCompletions: [], // Armazena apenas horários (ex.: ["8:00", "12:00"])
+                dailyCompletions: [],
                 completionDates: []
             };
 
@@ -363,13 +438,14 @@
             renderHabits();
             renderDailySummary();
             e.target.reset();
+            // Volta para a tela de Início
+            document.querySelector('.tab-link[data-tab="home"]').click();
         });
 
         function renderHabits() {
             const container = document.getElementById('habitsList');
             container.innerHTML = '';
 
-            // Limpa dailyCompletions se o dia mudou
             const today = new Date().toDateString();
             if (currentDate !== today) {
                 habits.forEach(habit => {
@@ -427,6 +503,38 @@
                 : `<p>Hábitos pendentes hoje:</p><ul>${pendingHabits.map(h => `<li>${h}</li>`).join('')}</ul>`;
         }
 
+        function renderAchievementsSummary() {
+            const container = document.getElementById('achievementsSummary');
+            container.innerHTML = '<h3>Conquistas Desbloqueadas</h3>';
+            if (achievements.length === 0) {
+                container.innerHTML += '<p>Nenhuma conquista desbloqueada ainda.</p>';
+                return;
+            }
+            const grid = document.createElement('div');
+            grid.className = 'achievements-grid';
+            achievements.forEach(a => {
+                const achievement = allAchievements.find(ach => ach.name === a);
+                if (achievement) {
+                    grid.innerHTML += `<div class="badge">${achievement.icon} ${a}</div>`;
+                }
+            });
+            container.appendChild(grid);
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievementsList');
+            container.innerHTML = '';
+            allAchievements.forEach(a => {
+                const isUnlocked = achievements.includes(a.name);
+                const badge = document.createElement('div');
+                badge.className = `badge ${isUnlocked ? '' : 'locked'}`;
+                badge.innerHTML = isUnlocked 
+                    ? `${a.icon} ${a.name}`
+                    : `${a.icon} ${a.name} <small>(${a.requirement})</small>`;
+                container.appendChild(badge);
+            });
+        }
+
         window.updateProgress = (id, completed, time) => {
             const habit = habits.find(h => h.id === id);
             if (!habit) return;
@@ -447,12 +555,14 @@
                 points = Math.max(points - 10, 0);
                 habit.completionDates.pop();
             } else {
-                return; // Evita atualizações desnecessárias
+                return;
             }
 
             saveData();
             renderHabits();
             renderDailySummary();
+            renderAchievementsSummary();
+            renderAchievements();
             updateGamification();
         };
 
@@ -478,40 +588,23 @@
             const levelNames = ['Iniciante', 'Explorador', 'Mestre'];
             document.getElementById('points').textContent = points;
             document.getElementById('level').textContent = levelNames[Math.min(level, levelNames.length - 1)];
-
-            const achievementIcons = {
-                'Primeiro Passo': '<i class="fas fa-shoe-prints"></i>',
-                'Meta Semanal': '<i class="fas fa-check-circle"></i>',
-                '5 Dias Seguidos': '<i class="fas fa-fire"></i>'
-            };
-            const container = document.getElementById('achievementsList');
-            container.innerHTML = achievements.length === 0 
-                ? '<p>Nenhuma conquista desbloqueada ainda.</p>'
-                : achievements.map(a => `<span class="badge">${achievementIcons[a] || ''} ${a}</span>`).join('');
         }
 
         function checkAchievements(habit) {
             const newAchievements = [];
 
-            if (habit.progress >= 1 && !achievements.includes('Primeiro Passo')) {
-                newAchievements.push('Primeiro Passo');
-                showNotification('Conquista desbloqueada: Primeiro Passo! 🎉');
-            }
-
-            if (habit.progress >= habit.dailyExecutions * 7 && !achievements.includes('Meta Semanal')) {
-                newAchievements.push('Meta Semanal');
-                showNotification('Conquista desbloqueada: Meta Semanal! 🎉');
-            }
-
-            if (consecutiveDays >= 5 && !achievements.includes('5 Dias Seguidos')) {
-                newAchievements.push('5 Dias Seguidos');
-                showNotification('Conquista desbloqueada: 5 Dias Seguidos! 🎉');
-            }
+            allAchievements.forEach(a => {
+                if (!achievements.includes(a.name) && a.condition(habit)) {
+                    newAchievements.push(a.name);
+                    showNotification(`Conquista desbloqueada: ${a.name}! 🎉`);
+                }
+            });
 
             if (newAchievements.length > 0) {
                 achievements.push(...newAchievements);
                 saveData();
-                updateGamification();
+                renderAchievementsSummary();
+                renderAchievements();
             }
         }
 
@@ -589,6 +682,8 @@
                 saveData();
                 renderHabits();
                 renderDailySummary();
+                renderAchievementsSummary();
+                renderAchievements();
                 updateGamification();
                 showNotification('Programa reiniciado com sucesso!');
             }
