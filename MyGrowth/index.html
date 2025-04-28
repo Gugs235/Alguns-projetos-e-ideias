@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyGrowth - Diário de Hábitos</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Reset CSS */
         * {
             margin: 0;
             padding: 0;
@@ -14,12 +14,15 @@
             font-family: 'Roboto', sans-serif;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             background-color: #f0f2f5;
             color: #333;
         }
 
-        /* Header */
         header {
             background: #007bff;
             color: white;
@@ -38,14 +41,18 @@
             margin: 0 auto;
         }
 
-        /* Main Content */
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+
         .container {
             max-width: 1200px;
             margin: 80px auto 20px;
             padding: 20px;
         }
 
-        /* Formulário */
         .habit-form {
             background: white;
             padding: 20px;
@@ -58,11 +65,23 @@
             margin-bottom: 15px;
         }
 
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
         input, select {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 5px;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
         }
 
         button {
@@ -79,20 +98,21 @@
             background: #0056b3;
         }
 
-        /* Cards de Hábitos */
         .habit-card {
             background: white;
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .progress-bar {
             height: 10px;
             background: #eee;
             border-radius: 5px;
-            margin: 10px 0;
         }
 
         .progress-fill {
@@ -102,7 +122,26 @@
             transition: width 0.3s ease;
         }
 
-        /* Seção de Gamificação */
+        .daily-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .daily-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .daily-summary li {
+            background: #e9ecef;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
         .gamification {
             background: white;
             padding: 20px;
@@ -116,11 +155,77 @@
             background: #ffc107;
             border-radius: 15px;
             margin: 5px;
+            font-size: 0.9rem;
         }
 
-        /* Responsivo */
+        .badge i {
+            margin-right: 5px;
+        }
+
+        .reset-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        #resetButton {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #resetButton:hover {
+            background: #c82333;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .execution-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .execution-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         @media (max-width: 768px) {
             .container {
+                padding: 10px;
+            }
+
+            nav a {
+                margin: 0 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .habit-card {
                 padding: 10px;
             }
         }
@@ -130,114 +235,322 @@
     <header>
         <nav>
             <h1>MyGrowth</h1>
-            <div id="level">Nível 1</div>
+            <div>
+                <a href="#home">Início</a>
+                <a href="#habits">Hábitos</a>
+                <a href="#achievements">Conquistas</a>
+            </div>
+            <div>Pontos: <span id="points">0</span> | Nível: <span id="level">1</span></div>
         </nav>
     </header>
 
     <div class="container">
-        <!-- Formulário de Hábitos -->
-        <form class="habit-form" id="habitForm">
-            <div class="form-group">
-                <input type="text" id="habitName" placeholder="Nome do hábito" required>
-            </div>
-            <div class="form-group">
-                <select id="habitFrequency">
-                    <option value="diario">Diário</option>
-                    <option value="semanal">Semanal</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <input type="number" id="habitGoal" min="1" max="7" placeholder="Meta semanal" required>
-            </div>
-            <button type="submit">Adicionar Hábito</button>
-        </form>
+        <section id="home" class="daily-summary">
+            <h2>Resumo Diário</h2>
+            <div id="dailySummary"></div>
+        </section>
 
-        <!-- Lista de Hábitos -->
-        <div id="habitsList"></div>
+        <section id="habits" class="habit-form">
+            <h2>Adicionar Hábito</h2>
+            <form id="habitForm">
+                <div class="form-group">
+                    <label for="habitName">Nome do hábito</label>
+                    <input type="text" id="habitName" placeholder="Ex.: Comer" maxlength="50" required>
+                    <div id="nameError" class="error">O nome é obrigatório e deve ter até 50 caracteres.</div>
+                </div>
+                <div class="form-group">
+                    <label for="habitFrequency">Frequência</label>
+                    <select id="habitFrequency">
+                        <option value="diario">Diário</option>
+                        <option value="semanal">Semanal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dailyExecutions">Execuções por dia</label>
+                    <input type="number" id="dailyExecutions" min="1" max="5" placeholder="Ex.: 3" required>
+                    <div id="executionsError" class="error">Deve ser entre 1 e 5.</div>
+                </div>
+                <div class="form-group">
+                    <label for="habitTimes">Horários (HH:MM, separados por vírgula)</label>
+                    <input type="text" id="habitTimes" placeholder="Ex.: 8:00,12:00,20:00">
+                    <div id="timesError" class="error">Use formato HH:MM, separado por vírgulas.</div>
+                </div>
+                <button type="submit">Adicionar Hábito</button>
+            </form>
+        </section>
 
-        <!-- Gamificação -->
-        <div class="gamification">
+        <section>
+            <h2>Meus Hábitos</h2>
+            <div id="habitsList"></div>
+        </section>
+
+        <section id="achievements" class="gamification">
             <h2>Conquistas</h2>
-            <div id="achievements"></div>
-        </div>
+            <div id="achievementsList"></div>
+        </section>
+
+        <section class="reset-section">
+            <button id="resetButton">Reiniciar Tudo</button>
+        </section>
     </div>
 
     <script>
-        // Sistema de Armazenamento
         let habits = JSON.parse(localStorage.getItem('habits')) || [];
         let points = parseInt(localStorage.getItem('points')) || 0;
         let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
+        let consecutiveDays = JSON.parse(localStorage.getItem('consecutiveDays')) || 0;
 
-        // Inicialização
+        if (points < 0 || points > habits.length * 10 * 1000) {
+            points = 0;
+            localStorage.setItem('points', '0');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            resetWeeklyProgress();
             renderHabits();
+            renderDailySummary();
             updateGamification();
+            startTimeReminders();
         });
 
-        // Adicionar Hábito
         document.getElementById('habitForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            const name = document.getElementById('habitName').value.trim();
+            const frequency = document.getElementById('habitFrequency').value;
+            const dailyExecutions = parseInt(document.getElementById('dailyExecutions').value);
+            const times = document.getElementById('habitTimes').value.trim();
+
+            let isValid = true;
+            document.getElementById('nameError').style.display = 'none';
+            document.getElementById('executionsError').style.display = 'none';
+            document.getElementById('timesError').style.display = 'none';
+
+            if (!name || name.length > 50) {
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            }
+            if (isNaN(dailyExecutions) || dailyExecutions < 1 || dailyExecutions > 5) {
+                document.getElementById('executionsError').style.display = 'block';
+                isValid = false;
+            }
+            let timesArray = [];
+            if (times) {
+                timesArray = times.split(',').map(t => t.trim());
+                const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (timesArray.length !== dailyExecutions || !timesArray.every(t => timeRegex.test(t))) {
+                    document.getElementById('timesError').style.display = 'block';
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) return;
+
             const newHabit = {
                 id: Date.now(),
-                name: document.getElementById('habitName').value,
-                frequency: document.getElementById('habitFrequency').value,
-                goal: parseInt(document.getElementById('habitGoal').value),
+                name,
+                frequency,
+                dailyExecutions,
+                times: timesArray,
                 progress: 0,
-                lastUpdated: null
+                dailyCompletions: [], // Array de timestamps de execuções
+                completionDates: []
             };
 
             habits.push(newHabit);
             saveData();
             renderHabits();
+            renderDailySummary();
             e.target.reset();
         });
 
-        // Renderizar Hábitos
         function renderHabits() {
             const container = document.getElementById('habitsList');
             container.innerHTML = '';
 
             habits.forEach(habit => {
+                const today = new Date().toDateString();
+                const todayCompletions = habit.dailyCompletions.filter(c => new Date(c).toDateString() === today);
+                const progressPercentage = (habit.progress / (habit.dailyExecutions * 7)) * 100;
                 const card = document.createElement('div');
                 card.className = 'habit-card';
                 card.innerHTML = `
                     <h3>${habit.name}</h3>
-                    <p>Progresso: ${habit.progress}/${habit.goal}</p>
+                    <p>Frequência: ${habit.frequency === 'diario' ? 'Diário' : 'Semanal'}</p>
+                    <p>Execuções hoje: ${todayCompletions.length}/${habit.dailyExecutions}</p>
+                    <p>Progresso semanal: ${habit.progress}/${habit.dailyExecutions * 7}</p>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${(habit.progress/habit.goal)*100}%"></div>
+                        <div class="progress-fill" style="width: ${progressPercentage}%"></div>
                     </div>
-                    <input type="checkbox" ${isToday(habit.lastUpdated) ? 'checked' : ''} 
-                           onchange="updateProgress(${habit.id}, this.checked)">
+                    <div class="execution-list">
+                        ${Array.from({ length: habit.dailyExecutions }, (_, i) => {
+                            const time = habit.times[i] || `Execução ${i + 1}`;
+                            const isChecked = todayCompletions.some(c => c.includes(time));
+                            return `
+                                <div class="execution-item">
+                                    <label>
+                                        <input type="checkbox" ${isChecked ? 'checked' : ''} 
+                                               ${todayCompletions.length >= habit.dailyExecutions && !isChecked ? 'disabled' : ''}
+                                               onchange="updateProgress(${habit.id}, this.checked, '${time}')">
+                                        ${time}
+                                    </label>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Atualizar Progresso
-        window.updateProgress = (id, completed) => {
-            const habit = habits.find(h => h.id === id);
-            if (completed) {
-                habit.progress = Math.min(habit.progress + 1, habit.goal);
-                points += 10;
-                checkAchievements();
-            }
-            habit.lastUpdated = new Date().toISOString();
-            saveData();
-            updateGamification();
-            renderHabits();
+        function renderDailySummary() {
+            const container = document.getElementById('dailySummary');
+            const today = new Date().toDateString();
+            const pendingHabits = habits.map(h => {
+                const todayCompletions = h.dailyCompletions.filter(c => new Date(c).toDateString() === today);
+                return todayCompletions.length < h.dailyExecutions ? 
+                    `${h.name}: ${todayCompletions.length}/${h.dailyExecutions} concluído` : null;
+            }).filter(h => h);
+            container.innerHTML = pendingHabits.length === 0 
+                ? '<p>Todos os hábitos de hoje foram concluídos! 🎉</p>'
+                : `<p>Hábitos pendentes hoje:</p><ul>${pendingHabits.map(h => `<li>${h}</li>`).join('')}</ul>`;
         }
 
-        // Sistema de Gamificação
+        window.updateProgress = (id, completed, time) => {
+            const habit = habits.find(h => h.id === id);
+            if (!habit) return;
+
+            const today = new Date().toDateString();
+            const todayCompletions = habit.dailyCompletions.filter(c => new Date(c).toDateString() === today);
+            
+            if (completed && todayCompletions.length < habit.dailyExecutions) {
+                const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
+                habit.dailyCompletions.push(timestamp);
+                habit.progress += 1;
+                points += 10;
+                habit.completionDates.push(new Date().toISOString().split('T')[0]);
+                checkConsecutiveDays(habit);
+                checkAchievements(habit);
+            } else if (!completed) {
+                const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
+                habit.dailyCompletions = habit.dailyCompletions.filter(c => c !== timestamp);
+                habit.progress = Math.max(habit.progress - 1, 0);
+                points = Math.max(points - 10, 0);
+                habit.completionDates.pop();
+            }
+
+            saveData();
+            renderHabits();
+            renderDailySummary();
+            updateGamification();
+        };
+
+        function checkConsecutiveDays(habit) {
+            const dates = [...new Set(habit.completionDates)].sort();
+            let currentStreak = 1;
+            for (let i = 1; i < dates.length; i++) {
+                const prevDate = new Date(dates[i - 1]);
+                const currDate = new Date(dates[i]);
+                const diffDays = (currDate - prevDate) / (1000 * 60 * 60 * 24);
+                if (diffDays === 1) {
+                    currentStreak++;
+                } else if (diffDays > 1) {
+                    currentStreak = 1;
+                }
+            }
+            consecutiveDays = Math.max(consecutiveDays, currentStreak);
+            saveData();
+        }
+
         function updateGamification() {
             const level = Math.floor(points / 100);
-            document.getElementById('level').textContent = `Nível ${level}`;
+            const levelNames = ['Iniciante', 'Explorador', 'Mestre'];
+            document.getElementById('points').textContent = points;
+            document.getElementById('level').textContent = levelNames[Math.min(level, levelNames.length - 1)];
+
+            const achievementIcons = {
+                'Primeiro Passo': '<i class="fas fa-shoe-prints"></i>',
+                'Meta Semanal': '<i class="fas fa-check-circle"></i>',
+                '5 Dias Seguidos': '<i class="fas fa-fire"></i>'
+            };
+            const container = document.getElementById('achievementsList');
+            container.innerHTML = achievements.length === 0 
+                ? '<p>Nenhuma conquista desbloqueada ainda.</p>'
+                : achievements.map(a => `<span class="badge">${achievementIcons[a] || ''} ${a}</span>`).join('');
         }
 
-        function checkAchievements() {
-            // Implementar lógica de conquistas
+        function checkAchievements(habit) {
+            const newAchievements = [];
+
+            if (habit.progress >= 1 && !achievements.includes('Primeiro Passo')) {
+                newAchievements.push('Primeiro Passo');
+                showNotification('Conquista desbloqueada: Primeiro Passo! 🎉');
+            }
+
+            if (habit.progress >= habit.dailyExecutions * 7 && !achievements.includes('Meta Semanal')) {
+                newAchievements.push('Meta Semanal');
+                showNotification('Conquista desbloqueada: Meta Semanal! 🎉');
+            }
+
+            if (consecutiveDays >= 5 && !achievements.includes('5 Dias Seguidos')) {
+                newAchievements.push('5 Dias Seguidos');
+                showNotification('Conquista desbloqueada: 5 Dias Seguidos! 🎉');
+            }
+
+            if (newAchievements.length > 0) {
+                achievements.push(...newAchievements);
+                saveData();
+                updateGamification();
+            }
         }
 
-        // Utilitários
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function startTimeReminders() {
+            setInterval(() => {
+                const now = new Date();
+                const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                habits.forEach(habit => {
+                    habit.times.forEach(time => {
+                        const [hours, minutes] = time.split(':').map(Number);
+                        const timeDate = new Date(now);
+                        timeDate.setHours(hours, minutes, 0, 0);
+                        const diffMs = timeDate - now;
+                        if (diffMs > 0 && diffMs <= 5 * 60 * 1000) { // 5 minutos antes
+                            showNotification(`Lembrete: ${habit.name} às ${time}!`);
+                        }
+                    });
+                });
+            }, 60 * 1000); // Verifica a cada minuto
+        }
+
+        function resetWeeklyProgress() {
+            const today = new Date();
+            const lastReset = localStorage.getItem('lastReset')
+                ? new Date(localStorage.getItem('lastReset'))
+                : null;
+
+            if (!lastReset || (today.getDay() === 0 && today.toDateString() !== lastReset.toDateString())) {
+                habits.forEach(habit => {
+                    habit.progress = 0;
+                    habit.dailyCompletions = [];
+                    habit.completionDates = [];
+                });
+                localStorage.setItem('lastReset', today.toISOString());
+                saveData();
+            }
+        }
+
         function isToday(dateString) {
             if (!dateString) return false;
             const date = new Date(dateString);
@@ -249,7 +562,23 @@
             localStorage.setItem('habits', JSON.stringify(habits));
             localStorage.setItem('points', points.toString());
             localStorage.setItem('achievements', JSON.stringify(achievements));
+            localStorage.setItem('consecutiveDays', consecutiveDays.toString());
         }
+
+        document.getElementById('resetButton').addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja reiniciar tudo? Todos os hábitos, pontos e conquistas serão perdidos.')) {
+                localStorage.clear();
+                habits = [];
+                points = 0;
+                achievements = [];
+                consecutiveDays = 0;
+                saveData();
+                renderHabits();
+                renderDailySummary();
+                updateGamification();
+                showNotification('Programa reiniciado com sucesso!');
+            }
+        });
     </script>
 </body>
 </html>
