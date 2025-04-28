@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -353,7 +353,7 @@
                 dailyExecutions,
                 times: timesArray,
                 progress: 0,
-                dailyCompletions: [], // Array de timestamps de execuções
+                dailyCompletions: [],
                 completionDates: []
             };
 
@@ -371,26 +371,29 @@
             habits.forEach(habit => {
                 const today = new Date().toDateString();
                 const todayCompletions = habit.dailyCompletions.filter(c => new Date(c).toDateString() === today);
-                const progressPercentage = (habit.progress / (habit.dailyExecutions * 7)) * 100;
+                const maxProgress = habit.dailyExecutions * 7;
+                const progressPercentage = Math.min((habit.progress / maxProgress) * 100, 100);
                 const card = document.createElement('div');
                 card.className = 'habit-card';
                 card.innerHTML = `
                     <h3>${habit.name}</h3>
                     <p>Frequência: ${habit.frequency === 'diario' ? 'Diário' : 'Semanal'}</p>
                     <p>Execuções hoje: ${todayCompletions.length}/${habit.dailyExecutions}</p>
-                    <p>Progresso semanal: ${habit.progress}/${habit.dailyExecutions * 7}</p>
+                    <p>Progresso semanal: ${habit.progress}/${maxProgress}</p>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: ${progressPercentage}%"></div>
                     </div>
                     <div class="execution-list">
                         ${Array.from({ length: habit.dailyExecutions }, (_, i) => {
                             const time = habit.times[i] || `Execução ${i + 1}`;
-                            const isChecked = todayCompletions.some(c => c.includes(time));
+                            const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
+                            const isChecked = todayCompletions.includes(timestamp);
+                            const isDisabled = todayCompletions.length >= habit.dailyExecutions && !isChecked;
                             return `
                                 <div class="execution-item">
                                     <label>
                                         <input type="checkbox" ${isChecked ? 'checked' : ''} 
-                                               ${todayCompletions.length >= habit.dailyExecutions && !isChecked ? 'disabled' : ''}
+                                               ${isDisabled ? 'disabled' : ''}
                                                onchange="updateProgress(${habit.id}, this.checked, '${time}')">
                                         ${time}
                                     </label>
@@ -421,22 +424,24 @@
             if (!habit) return;
 
             const today = new Date().toDateString();
+            const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
             const todayCompletions = habit.dailyCompletions.filter(c => new Date(c).toDateString() === today);
-            
-            if (completed && todayCompletions.length < habit.dailyExecutions) {
-                const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
+            const maxProgress = habit.dailyExecutions * 7;
+
+            if (completed && todayCompletions.length < habit.dailyExecutions && !todayCompletions.includes(timestamp)) {
                 habit.dailyCompletions.push(timestamp);
-                habit.progress += 1;
+                habit.progress = Math.min(habit.progress + 1, maxProgress);
                 points += 10;
                 habit.completionDates.push(new Date().toISOString().split('T')[0]);
                 checkConsecutiveDays(habit);
                 checkAchievements(habit);
-            } else if (!completed) {
-                const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
+            } else if (!completed && todayCompletions.includes(timestamp)) {
                 habit.dailyCompletions = habit.dailyCompletions.filter(c => c !== timestamp);
                 habit.progress = Math.max(habit.progress - 1, 0);
                 points = Math.max(points - 10, 0);
                 habit.completionDates.pop();
+            } else {
+                return; // Evita atualizações desnecessárias
             }
 
             saveData();
@@ -526,12 +531,12 @@
                         const timeDate = new Date(now);
                         timeDate.setHours(hours, minutes, 0, 0);
                         const diffMs = timeDate - now;
-                        if (diffMs > 0 && diffMs <= 5 * 60 * 1000) { // 5 minutos antes
+                        if (diffMs > 0 && diffMs <= 5 * 60 * 1000) {
                             showNotification(`Lembrete: ${habit.name} às ${time}!`);
                         }
                     });
                 });
-            }, 60 * 1000); // Verifica a cada minuto
+            }, 60 * 1000);
         }
 
         function resetWeeklyProgress() {
