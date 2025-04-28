@@ -299,6 +299,7 @@
         let points = parseInt(localStorage.getItem('points')) || 0;
         let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
         let consecutiveDays = JSON.parse(localStorage.getItem('consecutiveDays')) || 0;
+        let currentDate = new Date().toDateString(); // Rastreia o dia atual
 
         if (points < 0 || points > habits.length * 10 * 1000) {
             points = 0;
@@ -353,7 +354,7 @@
                 dailyExecutions,
                 times: timesArray,
                 progress: 0,
-                dailyCompletions: [],
+                dailyCompletions: [], // Armazena apenas horários (ex.: ["8:00", "12:00"])
                 completionDates: []
             };
 
@@ -368,9 +369,18 @@
             const container = document.getElementById('habitsList');
             container.innerHTML = '';
 
+            // Limpa dailyCompletions se o dia mudou
+            const today = new Date().toDateString();
+            if (currentDate !== today) {
+                habits.forEach(habit => {
+                    habit.dailyCompletions = [];
+                });
+                currentDate = today;
+                saveData();
+            }
+
             habits.forEach(habit => {
-                const today = new Date().toDateString();
-                const todayCompletions = habit.dailyCompletions.filter(c => new Date(c).toDateString() === today);
+                const todayCompletions = habit.dailyCompletions;
                 const maxProgress = habit.dailyExecutions * 7;
                 const progressPercentage = Math.min((habit.progress / maxProgress) * 100, 100);
                 const card = document.createElement('div');
@@ -386,8 +396,7 @@
                     <div class="execution-list">
                         ${Array.from({ length: habit.dailyExecutions }, (_, i) => {
                             const time = habit.times[i] || `Execução ${i + 1}`;
-                            const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
-                            const isChecked = todayCompletions.includes(timestamp);
+                            const isChecked = todayCompletions.includes(time);
                             const isDisabled = todayCompletions.length >= habit.dailyExecutions && !isChecked;
                             return `
                                 <div class="execution-item">
@@ -408,9 +417,8 @@
 
         function renderDailySummary() {
             const container = document.getElementById('dailySummary');
-            const today = new Date().toDateString();
             const pendingHabits = habits.map(h => {
-                const todayCompletions = h.dailyCompletions.filter(c => new Date(c).toDateString() === today);
+                const todayCompletions = h.dailyCompletions;
                 return todayCompletions.length < h.dailyExecutions ? 
                     `${h.name}: ${todayCompletions.length}/${h.dailyExecutions} concluído` : null;
             }).filter(h => h);
@@ -423,20 +431,18 @@
             const habit = habits.find(h => h.id === id);
             if (!habit) return;
 
-            const today = new Date().toDateString();
-            const timestamp = `${new Date().toISOString().split('T')[0]}T${time}`;
-            const todayCompletions = habit.dailyCompletions.filter(c => new Date(c).toDateString() === today);
+            const todayCompletions = habit.dailyCompletions;
             const maxProgress = habit.dailyExecutions * 7;
 
-            if (completed && todayCompletions.length < habit.dailyExecutions && !todayCompletions.includes(timestamp)) {
-                habit.dailyCompletions.push(timestamp);
+            if (completed && todayCompletions.length < habit.dailyExecutions && !todayCompletions.includes(time)) {
+                habit.dailyCompletions.push(time);
                 habit.progress = Math.min(habit.progress + 1, maxProgress);
                 points += 10;
                 habit.completionDates.push(new Date().toISOString().split('T')[0]);
                 checkConsecutiveDays(habit);
                 checkAchievements(habit);
-            } else if (!completed && todayCompletions.includes(timestamp)) {
-                habit.dailyCompletions = habit.dailyCompletions.filter(c => c !== timestamp);
+            } else if (!completed && todayCompletions.includes(time)) {
+                habit.dailyCompletions = habit.dailyCompletions.filter(c => c !== time);
                 habit.progress = Math.max(habit.progress - 1, 0);
                 points = Math.max(points - 10, 0);
                 habit.completionDates.pop();
@@ -552,6 +558,7 @@
                     habit.completionDates = [];
                 });
                 localStorage.setItem('lastReset', today.toISOString());
+                currentDate = today.toDateString();
                 saveData();
             }
         }
@@ -568,6 +575,7 @@
             localStorage.setItem('points', points.toString());
             localStorage.setItem('achievements', JSON.stringify(achievements));
             localStorage.setItem('consecutiveDays', consecutiveDays.toString());
+            localStorage.setItem('currentDate', currentDate);
         }
 
         document.getElementById('resetButton').addEventListener('click', () => {
@@ -577,6 +585,7 @@
                 points = 0;
                 achievements = [];
                 consecutiveDays = 0;
+                currentDate = new Date().toDateString();
                 saveData();
                 renderHabits();
                 renderDailySummary();
