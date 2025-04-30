@@ -6,6 +6,8 @@ let points = parseInt(localStorage.getItem('points')) || 0;
 let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
 let consecutiveDays = JSON.parse(localStorage.getItem('consecutiveDays')) || 0;
 let currentDate = localStorage.getItem('currentDate') || new Date().toDateString();
+let editingHabitId = null;
+let editingProjectId = null;
 
 // Validação de Pontos
 if (points < 0 || points > (habits.length * 10 + projects.length * 20) * 1000) {
@@ -42,6 +44,23 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTask(projectId, taskIndex, e.target.checked);
         }
     });
+
+    // Delegação de eventos para botões de edição
+    document.getElementById('habitsList').addEventListener('click', (e) => {
+        if (e.target.closest('.edit-button')) {
+            const habitId = parseInt(e.target.closest('.habit-card').dataset.habitId);
+            console.log(`Botão de edição de hábito clicado: habitId=${habitId}`);
+            editHabit(habitId);
+        }
+    });
+
+    document.getElementById('projectsList').addEventListener('click', (e) => {
+        if (e.target.closest('.edit-button')) {
+            const projectId = parseInt(e.target.closest('.project-card').dataset.projectId);
+            console.log(`Botão de edição de projeto clicado: projectId=${projectId}`);
+            editProject(projectId);
+        }
+    });
 });
 
 // Configuração das Abas
@@ -62,10 +81,30 @@ function setupTabs() {
     });
 }
 
+// Função para ativar aba explicitamente
+function activateTab(tabId) {
+    const tabs = document.querySelectorAll('.tab-link');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+
+    const targetTab = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
+    const targetContent = document.getElementById(tabId);
+
+    if (targetTab && targetContent) {
+        targetTab.classList.add('active');
+        targetContent.classList.add('active');
+    } else {
+        console.error(`Erro ao ativar aba: ${tabId}`);
+    }
+}
+
 // Formulário de Hábitos
 document.getElementById('habitForm').addEventListener('submit', (e) => {
     e.preventDefault();
     
+    const id = parseInt(document.getElementById('editingHabitId').value) || null;
     const name = document.getElementById('habitName').value.trim();
     const frequency = document.getElementById('habitFrequency').value;
     const dailyExecutions = parseInt(document.getElementById('dailyExecutions').value);
@@ -96,29 +135,58 @@ document.getElementById('habitForm').addEventListener('submit', (e) => {
 
     if (!isValid) return;
 
-    const newHabit = {
-        id: Date.now(),
-        name,
-        frequency,
-        dailyExecutions,
-        times: timesArray,
-        progress: 0,
-        dailyCompletions: [],
-        completionDates: []
-    };
+    if (id !== null) {
+        // Modo de edição
+        console.log(`Editando hábito: id=${id}, nome=${name}`);
+        const habit = habits.find(h => h.id === id);
+        if (habit) {
+            habit.name = name;
+            habit.frequency = frequency;
+            habit.dailyExecutions = dailyExecutions;
+            habit.times = timesArray;
+            // Resetar progresso se execuções mudarem
+            if (habit.dailyExecutions !== dailyExecutions) {
+                habit.dailyCompletions = [];
+                habit.progress = 0;
+                habit.completionDates = [];
+            }
+            showNotification(`Hábito "${name}" atualizado com sucesso!`);
+        } else {
+            console.error(`Hábito não encontrado para edição: id=${id}`);
+            showNotification('Erro: Hábito não encontrado.');
+            return;
+        }
+        editingHabitId = null;
+        document.getElementById('editingHabitId').value = '';
+    } else {
+        // Modo de adição
+        console.log(`Adicionando novo hábito: nome=${name}`);
+        const newHabit = {
+            id: Date.now(),
+            name,
+            frequency,
+            dailyExecutions,
+            times: timesArray,
+            progress: 0,
+            dailyCompletions: [],
+            completionDates: []
+        };
+        habits.push(newHabit);
+        showNotification(`Hábito "${name}" adicionado com sucesso!`);
+    }
 
-    habits.push(newHabit);
     saveData();
     renderHabits();
     renderDailySummary();
-    e.target.reset();
-    document.querySelector('.tab-link[data-tab="home"]').click();
+    resetHabitForm();
+    activateTab('home');
 });
 
 // Formulário de Projetos
 document.getElementById('projectForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
+    const id = parseInt(document.getElementById('editingProjectId').value) || null;
     const name = document.getElementById('projectName').value.trim();
     const description = document.getElementById('projectDescription').value.trim();
     const tasks = document.getElementById('projectTasks').value.trim();
@@ -139,17 +207,44 @@ document.getElementById('projectForm').addEventListener('submit', (e) => {
 
     if (!isValid) return;
 
-    const newProject = {
-        id: Date.now(),
-        name,
-        description,
-        tasks: tasksArray.map(task => ({ name: task, completed: false }))
-    };
+    if (id !== null) {
+        // Modo de edição
+        console.log(`Editando projeto: id=${id}, nome=${name}`);
+        const project = projects.find(p => p.id === id);
+        if (project) {
+            // Preservar estado de tarefas concluídas, se possível
+            const newTasks = tasksArray.map((task, index) => ({
+                name: task,
+                completed: project.tasks[index]?.completed || false
+            }));
+            project.name = name;
+            project.description = description;
+            project.tasks = newTasks;
+            showNotification(`Projeto "${name}" atualizado com sucesso!`);
+        } else {
+            console.error(`Projeto não encontrado para edição: id=${id}`);
+            showNotification('Erro: Projeto não encontrado.');
+            return;
+        }
+        editingProjectId = null;
+        document.getElementById('editingProjectId').value = '';
+    } else {
+        // Modo de adição
+        console.log(`Adicionando novo projeto: nome=${name}`);
+        const newProject = {
+            id: Date.now(),
+            name,
+            description,
+            tasks: tasksArray.map(task => ({ name: task, completed: false }))
+        };
+        projects.push(newProject);
+        showNotification(`Projeto "${name}" adicionado com sucesso!`);
+    }
 
-    projects.push(newProject);
     saveData();
     renderProjects();
-    e.target.reset();
+    resetProjectForm();
+    activateTab('projects');
 });
 
 // Renderização
@@ -172,6 +267,7 @@ function renderHabits() {
         const progressPercentage = Math.min((habit.progress / maxProgress) * 100, 100);
         const card = document.createElement('div');
         card.className = 'habit-card';
+        card.dataset.habitId = habit.id;
         card.innerHTML = `
             <h3>${habit.name}</h3>
             <p>Frequência: ${habit.frequency === 'diario' ? 'Diário' : 'Semanal'}</p>
@@ -197,6 +293,9 @@ function renderHabits() {
                     `;
                 }).join('')}
             </div>
+            <button class="edit-button">
+                <i class="fas fa-edit"></i> Editar
+            </button>
         `;
         container.appendChild(card);
     });
@@ -213,6 +312,7 @@ function renderProjects() {
         const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
         const card = document.createElement('div');
         card.className = 'project-card';
+        card.dataset.projectId = project.id;
         card.innerHTML = `
             <h3>${project.name}</h3>
             ${project.description ? `<p>${project.description}</p>` : ''}
@@ -230,6 +330,9 @@ function renderProjects() {
                     </div>
                 `).join('')}
             </div>
+            <button class="edit-button">
+                <i class="fas fa-edit"></i> Editar
+            </button>
         `;
         container.appendChild(card);
     });
@@ -277,6 +380,65 @@ function renderAchievements() {
             : `${a.icon} ${a.name} <small>(${a.requirement})</small>`;
         container.appendChild(badge);
     });
+}
+
+// Edição de Hábitos e Projetos
+function editHabit(id) {
+    console.log(`Iniciando edição de hábito: id=${id}`);
+    const habit = habits.find(h => h.id === id);
+    if (!habit) {
+        console.error(`Hábito não encontrado: id=${id}`);
+        return;
+    }
+
+    editingHabitId = id;
+    document.getElementById('editingHabitId').value = id;
+    document.getElementById('habitFormTitle').textContent = 'Editar Hábito';
+    document.getElementById('habitSubmitButton').textContent = 'Salvar Alterações';
+    document.getElementById('habitName').value = habit.name;
+    document.getElementById('habitFrequency').value = habit.frequency;
+    document.getElementById('dailyExecutions').value = habit.dailyExecutions;
+    document.getElementById('habitTimes').value = habit.times.join(', ');
+    
+    activateTab('habits');
+}
+
+function editProject(id) {
+    console.log(`Iniciando edição de projeto: id=${id}`);
+    const project = projects.find(p => p.id === id);
+    if (!project) {
+        console.error(`Projeto não encontrado: id=${id}`);
+        return;
+    }
+
+    editingProjectId = id;
+    document.getElementById('editingProjectId').value = id;
+    document.getElementById('projectFormTitle').textContent = 'Editar Projeto';
+    document.getElementById('projectSubmitButton').textContent = 'Salvar Alterações';
+    document.getElementById('projectName').value = project.name;
+    document.getElementById('projectDescription').value = project.description;
+    document.getElementById('projectTasks').value = project.tasks.map(t => t.name).join(', ');
+    
+    activateTab('projects');
+}
+
+function resetHabitForm() {
+    document.getElementById('habitFormTitle').textContent = 'Adicionar Hábito';
+    document.getElementById('habitSubmitButton').textContent = 'Adicionar Hábito';
+    document.getElementById('habitForm').reset();
+    document.getElementById('editingHabitId').value = '';
+    document.getElementById('nameError').style.display = 'none';
+    document.getElementById('executionsError').style.display = 'none';
+    document.getElementById('timesError').style.display = 'none';
+}
+
+function resetProjectForm() {
+    document.getElementById('projectFormTitle').textContent = 'Adicionar Projeto';
+    document.getElementById('projectSubmitButton').textContent = 'Adicionar Projeto';
+    document.getElementById('projectForm').reset();
+    document.getElementById('editingProjectId').value = '';
+    document.getElementById('projectNameError').style.display = 'none';
+    document.getElementById('tasksError').style.display = 'none';
 }
 
 // Lógica de Progresso
@@ -476,6 +638,8 @@ document.getElementById('resetButton').addEventListener('click', () => {
         achievements = [];
         consecutiveDays = 0;
         currentDate = new Date().toDateString();
+        editingHabitId = null;
+        editingProjectId = null;
         saveData();
         renderHabits();
         renderProjects();

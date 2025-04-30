@@ -38,8 +38,9 @@
 
         <!-- Tela de Hábitos -->
         <section id="habits" class="tab-content">
-            <h2>Adicionar Hábito</h2>
+            <h2 id="habitFormTitle">Adicionar Hábito</h2>
             <form id="habitForm" class="habit-form">
+                <input type="hidden" id="editingHabitId">
                 <div class="form-group">
                     <label for="habitName">Nome do hábito</label>
                     <input type="text" id="habitName" placeholder="Ex.: Comer" maxlength="50" required>
@@ -62,14 +63,15 @@
                     <input type="text" id="habitTimes" placeholder="Ex.: 8:00,12:00,20:00">
                     <div id="timesError" class="error">Use formato HH:MM, separado por vírgulas.</div>
                 </div>
-                <button type="submit">Adicionar Hábito</button>
+                <button type="submit" id="habitSubmitButton">Adicionar Hábito</button>
             </form>
         </section>
 
         <!-- Tela de Projetos -->
         <section id="projects" class="tab-content">
-            <h2>Adicionar Projeto</h2>
+            <h2 id="projectFormTitle">Adicionar Projeto</h2>
             <form id="projectForm" class="project-form">
+                <input type="hidden" id="editingProjectId">
                 <div class="form-group">
                     <label for="projectName">Nome do projeto</label>
                     <input type="text" id="projectName" placeholder="Ex.: Fazer um arroz" maxlength="50" required>
@@ -84,7 +86,7 @@
                     <input type="text" id="projectTasks" placeholder="Ex.: Amassar o alho, Colocar o óleo, Fritar o alho" required>
                     <div id="tasksError" class="error">Insira pelo menos uma tarefa.</div>
                 </div>
-                <button type="submit">Adicionar Projeto</button>
+                <button type="submit" id="projectSubmitButton">Adicionar Projeto</button>
             </form>
             <h2>Meus Projetos</h2>
             <div id="projectsList"></div>
