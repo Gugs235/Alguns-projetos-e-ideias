@@ -12,8 +12,7 @@ html {
 }
 
 body {
-    background-color: #f0f2f5;
-    color: #333;
+    background: linear-gradient(135deg, #ededed, #007bff80) no-repeat center center fixed;
 }
 
 /* Navegação */
@@ -62,6 +61,10 @@ nav {
     max-width: 1200px;
     margin: 80px auto 20px;
     padding: 20px;
+}
+
+button:active {
+    transform: scale(0.95);
 }
 
 .tab-content {
@@ -282,4 +285,24 @@ button:hover {
     .achievements-grid {
         grid-template-columns: 1fr;
     }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+    .habit-card, .project-card {
+        font-size: 0.9rem;
+    }
+    .nav-tabs a {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.5rem;
+    }
+}
+
+.nav-toggle { display: none; }
+@media (max-width: 600px) {
+    .nav-toggle { display: block; }
+    .nav-tabs { display: none; }
+    .nav-tabs.active { display: flex; flex-direction: column; }
 }

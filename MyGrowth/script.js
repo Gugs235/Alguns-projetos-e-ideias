@@ -650,3 +650,7 @@ document.getElementById('resetButton').addEventListener('click', () => {
         showNotification('Programa reiniciado com sucesso!');
     }
 });
+
+document.querySelector('.nav-toggle').addEventListener('click', () => {
+    document.querySelector('.nav-tabs').classList.toggle('active');
+});
