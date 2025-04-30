@@ -76,7 +76,7 @@ nav {
 }
 
 /* Formulário de Hábitos */
-.habit-form {
+.habit-form, .project-form {
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -93,11 +93,16 @@ nav {
     margin-bottom: 5px;
 }
 
-input, select {
+input, select, textarea {
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 5px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
 }
 
 .error {
@@ -121,8 +126,8 @@ button:hover {
     background: #0056b3;
 }
 
-/* Cards de Hábitos */
-.habit-card {
+/* Cards de Hábitos e Projetos */
+.habit-card, .project-card {
     background: white;
     padding: 15px;
     border-radius: 10px;
@@ -246,14 +251,14 @@ button:hover {
     opacity: 1;
 }
 
-/* Lista de Execuções */
-.execution-list {
+/* Lista de Execuções e Tarefas */
+.execution-list, .task-list {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
-.execution-item {
+.execution-item, .task-item {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -270,7 +275,7 @@ button:hover {
         font-size: 0.9rem;
     }
 
-    .habit-card {
+    .habit-card, .project-card {
         padding: 10px;
     }
 

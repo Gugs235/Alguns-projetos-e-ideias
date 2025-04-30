@@ -1,13 +1,14 @@
 
 // Estado Inicial
 let habits = JSON.parse(localStorage.getItem('habits')) || [];
+let projects = JSON.parse(localStorage.getItem('projects')) || [];
 let points = parseInt(localStorage.getItem('points')) || 0;
 let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
 let consecutiveDays = JSON.parse(localStorage.getItem('consecutiveDays')) || 0;
 let currentDate = localStorage.getItem('currentDate') || new Date().toDateString();
 
 // Validação de Pontos
-if (points < 0 || points > habits.length * 10 * 1000) {
+if (points < 0 || points > (habits.length * 10 + projects.length * 20) * 1000) {
     points = 0;
     localStorage.setItem('points', '0');
 }
@@ -16,7 +17,8 @@ if (points < 0 || points > habits.length * 10 * 1000) {
 const allAchievements = [
     { name: 'Primeiro Passo', icon: '<i class="fas fa-shoe-prints"></i>', requirement: 'Complete 1 execução de qualquer hábito', condition: habit => habit.progress >= 1 },
     { name: 'Meta Semanal', icon: '<i class="fas fa-check-circle"></i>', requirement: 'Complete 7 execuções semanais de um hábito', condition: habit => habit.progress >= habit.dailyExecutions * 7 },
-    { name: '5 Dias Seguidos', icon: '<i class="fas fa-fire"></i>', requirement: 'Mantenha 5 dias consecutivos de progresso', condition: () => consecutiveDays >= 5 }
+    { name: '5 Dias Seguidos', icon: '<i class="fas fa-fire"></i>', requirement: 'Mantenha 5 dias consecutivos de progresso', condition: () => consecutiveDays >= 5 },
+    { name: 'Mestre de Projetos', icon: '<i class="fas fa-trophy"></i>', requirement: 'Conclua 3 projetos', condition: () => projects.filter(p => p.tasks.every(t => t.completed)).length >= 3 }
 ];
 
 // Inicialização
@@ -24,11 +26,22 @@ document.addEventListener('DOMContentLoaded', () => {
     resetWeeklyProgress();
     setupTabs();
     renderHabits();
+    renderProjects();
     renderDailySummary();
     renderAchievementsSummary();
     renderAchievements();
     updateGamification();
     startTimeReminders();
+
+    // Delegação de eventos para checkboxes
+    document.getElementById('projectsList').addEventListener('change', (e) => {
+        if (e.target.matches('.task-list input[type="checkbox"]')) {
+            const projectId = parseInt(e.target.closest('.task-list').dataset.projectId);
+            const taskIndex = parseInt(e.target.dataset.taskIndex);
+            console.log(`Checkbox clicado: projectId=${projectId}, taskIndex=${taskIndex}, checked=${e.target.checked}`);
+            updateTask(projectId, taskIndex, e.target.checked);
+        }
+    });
 });
 
 // Configuração das Abas
@@ -99,8 +112,44 @@ document.getElementById('habitForm').addEventListener('submit', (e) => {
     renderHabits();
     renderDailySummary();
     e.target.reset();
-    // Volta para a tela de Início
     document.querySelector('.tab-link[data-tab="home"]').click();
+});
+
+// Formulário de Projetos
+document.getElementById('projectForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('projectName').value.trim();
+    const description = document.getElementById('projectDescription').value.trim();
+    const tasks = document.getElementById('projectTasks').value.trim();
+
+    let isValid = true;
+    document.getElementById('projectNameError').style.display = 'none';
+    document.getElementById('tasksError').style.display = 'none';
+
+    if (!name || name.length > 50) {
+        document.getElementById('projectNameError').style.display = 'block';
+        isValid = false;
+    }
+    const tasksArray = tasks.split(',').map(t => t.trim()).filter(t => t);
+    if (tasksArray.length === 0) {
+        document.getElementById('tasksError').style.display = 'block';
+        isValid = false;
+    }
+
+    if (!isValid) return;
+
+    const newProject = {
+        id: Date.now(),
+        name,
+        description,
+        tasks: tasksArray.map(task => ({ name: task, completed: false }))
+    };
+
+    projects.push(newProject);
+    saveData();
+    renderProjects();
+    e.target.reset();
 });
 
 // Renderização
@@ -153,6 +202,39 @@ function renderHabits() {
     });
 }
 
+function renderProjects() {
+    console.log('Renderizando projetos:', projects);
+    const container = document.getElementById('projectsList');
+    container.innerHTML = '';
+
+    projects.forEach(project => {
+        const completedTasks = project.tasks.filter(t => t.completed).length;
+        const totalTasks = project.tasks.length;
+        const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.innerHTML = `
+            <h3>${project.name}</h3>
+            ${project.description ? `<p>${project.description}</p>` : ''}
+            <p>Tarefas concluídas: ${completedTasks}/${totalTasks}</p>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progressPercentage}%"></div>
+            </div>
+            <div class="task-list" data-project-id="${project.id}">
+                ${project.tasks.map((task, index) => `
+                    <div class="task-item">
+                        <label>
+                            <input type="checkbox" data-task-index="${index}" ${task.completed ? 'checked' : ''}>
+                            ${task.name}
+                        </label>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
 function renderDailySummary() {
     const container = document.getElementById('dailySummary');
     const pendingHabits = habits.map(h => {
@@ -198,9 +280,13 @@ function renderAchievements() {
 }
 
 // Lógica de Progresso
-window.updateProgress = (id, completed, time) => {
+function updateProgress(id, completed, time) {
+    console.log(`updateProgress: habitId=${id}, completed=${completed}, time=${time}`);
     const habit = habits.find(h => h.id === id);
-    if (!habit) return;
+    if (!habit) {
+        console.error('Hábito não encontrado:', id);
+        return;
+    }
 
     const todayCompletions = habit.dailyCompletions;
     const maxProgress = habit.dailyExecutions * 7;
@@ -227,7 +313,45 @@ window.updateProgress = (id, completed, time) => {
     renderAchievementsSummary();
     renderAchievements();
     updateGamification();
-};
+}
+
+function updateTask(projectId, taskIndex, completed) {
+    console.log(`updateTask: projectId=${projectId}, taskIndex=${taskIndex}, completed=${completed}`);
+    const project = projects.find(p => p.id === projectId);
+    if (!project) {
+        console.error('Projeto não encontrado:', projectId);
+        return;
+    }
+    if (taskIndex < 0 || taskIndex >= project.tasks.length) {
+        console.error('Índice de tarefa inválido:', taskIndex);
+        return;
+    }
+
+    const wasCompleted = project.tasks[taskIndex].completed;
+    project.tasks[taskIndex].completed = completed;
+    console.log('Tarefa atualizada:', project.tasks[taskIndex]);
+
+    if (completed && !wasCompleted) {
+        points += 5;
+        console.log('Pontos adicionados: +5, total=', points);
+        if (project.tasks.every(t => t.completed)) {
+            points += 20;
+            console.log('Projeto concluído, pontos adicionados: +20, total=', points);
+            showNotification(`Projeto "${project.name}" concluído! 🎉`);
+        }
+    } else if (!completed && wasCompleted) {
+        points = Math.max(points - 5, 0);
+        console.log('Pontos removidos: -5, total=', points);
+    }
+
+    console.log('Estado dos projetos antes de salvar:', projects);
+    saveData();
+    renderProjects();
+    renderAchievementsSummary();
+    renderAchievements();
+    updateGamification();
+    console.log('Projetos após renderização:', projects);
+}
 
 // Gamificação
 function checkConsecutiveDays(habit) {
@@ -274,6 +398,7 @@ function checkAchievements(habit) {
 
 // Notificações
 function showNotification(message) {
+    console.log('Notificação exibida:', message);
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.textContent = message;
@@ -332,7 +457,9 @@ function isToday(dateString) {
 
 // Persistência
 function saveData() {
+    console.log('Salvando dados no localStorage:', { habits, projects, points, achievements, consecutiveDays, currentDate });
     localStorage.setItem('habits', JSON.stringify(habits));
+    localStorage.setItem('projects', JSON.stringify(projects));
     localStorage.setItem('points', points.toString());
     localStorage.setItem('achievements', JSON.stringify(achievements));
     localStorage.setItem('consecutiveDays', consecutiveDays.toString());
@@ -341,15 +468,17 @@ function saveData() {
 
 // Reset Total
 document.getElementById('resetButton').addEventListener('click', () => {
-    if (confirm('Tem certeza que deseja reiniciar tudo? Todos os hábitos, pontos e conquistas serão perdidos.')) {
+    if (confirm('Tem certeza que deseja reiniciar tudo? Todos os hábitos, projetos, pontos e conquistas serão perdidos.')) {
         localStorage.clear();
         habits = [];
+        projects = [];
         points = 0;
         achievements = [];
         consecutiveDays = 0;
         currentDate = new Date().toDateString();
         saveData();
         renderHabits();
+        renderProjects();
         renderDailySummary();
         renderAchievementsSummary();
         renderAchievements();
