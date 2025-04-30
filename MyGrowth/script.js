@@ -45,12 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Delegação de eventos para botões de edição
+    // Delegação de eventos para botões de edição e exclusão
     document.getElementById('habitsList').addEventListener('click', (e) => {
         if (e.target.closest('.edit-button')) {
             const habitId = parseInt(e.target.closest('.habit-card').dataset.habitId);
             console.log(`Botão de edição de hábito clicado: habitId=${habitId}`);
             editHabit(habitId);
+        } else if (e.target.closest('.delete-button')) {
+            const habitId = parseInt(e.target.closest('.delete-button').dataset.habitId);
+            console.log(`Botão de exclusão de hábito clicado: habitId=${habitId}`);
+            deleteHabit(habitId);
         }
     });
 
@@ -59,6 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const projectId = parseInt(e.target.closest('.project-card').dataset.projectId);
             console.log(`Botão de edição de projeto clicado: projectId=${projectId}`);
             editProject(projectId);
+        } else if (e.target.closest('.delete-button')) {
+            const projectId = parseInt(e.target.closest('.delete-button').dataset.projectId);
+            console.log(`Botão de exclusão de projeto clicado: projectId=${projectId}`);
+            deleteProject(projectId);
         }
     });
 });
@@ -293,9 +301,14 @@ function renderHabits() {
                     `;
                 }).join('')}
             </div>
-            <button class="edit-button">
-                <i class="fas fa-edit"></i> Editar
-            </button>
+            <div class="button-group">
+                <button class="edit-button" aria-label="Editar hábito ${habit.name}">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="delete-button" data-habit-id="${habit.id}" aria-label="Excluir hábito ${habit.name}">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
+            </div>
         `;
         container.appendChild(card);
     });
@@ -304,7 +317,7 @@ function renderHabits() {
 function renderProjects() {
     console.log('Renderizando projetos:', projects);
     const container = document.getElementById('projectsList');
-    container.innerHTML = '';
+    container.innerHTML = ''; // Clear the container or replace with valid content
 
     projects.forEach(project => {
         const completedTasks = project.tasks.filter(t => t.completed).length;
@@ -330,9 +343,14 @@ function renderProjects() {
                     </div>
                 `).join('')}
             </div>
-            <button class="edit-button">
-                <i class="fas fa-edit"></i> Editar
-            </button>
+            <div class="button-group">
+                <button class="edit-button" aria-label="Editar projeto ${project.name}">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="delete-button" data-project-id="${project.id}" aria-label="Excluir projeto ${project.name}">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
+            </div>
         `;
         container.appendChild(card);
     });
@@ -380,6 +398,40 @@ function renderAchievements() {
             : `${a.icon} ${a.name} <small>(${a.requirement})</small>`;
         container.appendChild(badge);
     });
+}
+
+// Funções de Exclusão
+function deleteHabit(habitId) {
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) {
+        console.error(`Hábito não encontrado para exclusão: id=${habitId}`);
+        showNotification('Erro: Hábito não encontrado.');
+        return;
+    }
+    if (confirm(`Tem certeza que deseja excluir o hábito "${habit.name}"?`)) {
+        habits = habits.filter(h => h.id !== habitId);
+        saveData();
+        renderHabits();
+        renderDailySummary();
+        showNotification(`Hábito "${habit.name}" excluído com sucesso!`);
+        console.log(`Hábito excluído: id=${habitId}, nome=${habit.name}`);
+    }
+}
+
+function deleteProject(projectId) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) {
+        console.error(`Projeto não encontrado para exclusão: id=${projectId}`);
+        showNotification('Erro: Projeto não encontrado.');
+        return;
+    }
+    if (confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?`)) {
+        projects = projects.filter(p => p.id !== projectId);
+        saveData();
+        renderProjects();
+        showNotification(`Projeto "${project.name}" excluído com sucesso!`);
+        console.log(`Projeto excluído: id=${projectId}, nome=${project.name}`);
+    }
 }
 
 // Edição de Hábitos e Projetos
