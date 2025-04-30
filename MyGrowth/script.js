@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAchievements();
     updateGamification();
     startTimeReminders();
+    setupDragAndDrop();
 
     // Delegação de eventos para checkboxes
     document.getElementById('projectsList').addEventListener('change', (e) => {
@@ -68,6 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Botão de exclusão de projeto clicado: projectId=${projectId}`);
             deleteProject(projectId);
         }
+    });
+
+    // Filtro de projetos
+    document.getElementById('projectFilter').addEventListener('change', (e) => {
+        const filter = e.target.value;
+        console.log(`Filtro de projetos alterado: ${filter}`);
+        renderProjectsWithFilter(filter);
     });
 });
 
@@ -106,6 +114,56 @@ function activateTab(tabId) {
     } else {
         console.error(`Erro ao ativar aba: ${tabId}`);
     }
+}
+
+// Configuração de Drag and Drop
+function setupDragAndDrop() {
+    const habitsList = document.getElementById('habitsList');
+    habitsList.addEventListener('dragstart', (e) => {
+        const card = e.target.closest('.habit-card');
+        if (card) {
+            e.dataTransfer.setData('text/plain', card.dataset.habitId);
+            card.classList.add('dragging');
+            console.log(`Iniciando arraste: habitId=${card.dataset.habitId}`);
+        }
+    });
+
+    habitsList.addEventListener('dragend', (e) => {
+        const card = e.target.closest('.habit-card');
+        if (card) {
+            card.classList.remove('dragging');
+            console.log(`Fim do arraste: habitId=${card.dataset.habitId}`);
+        }
+    });
+
+    habitsList.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Necessário para permitir drop
+    });
+
+    habitsList.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const draggedId = parseInt(e.dataTransfer.getData('text/plain'));
+        const targetCard = e.target.closest('.habit-card');
+        if (!targetCard) return;
+
+        const targetId = parseInt(targetCard.dataset.habitId);
+        if (draggedId === targetId) return;
+
+        const draggedIndex = habits.findIndex(h => h.id === draggedId);
+        const targetIndex = habits.findIndex(h => h.id === targetId);
+
+        if (draggedIndex === -1 || targetIndex === -1) {
+            console.error(`Erro ao reordenar: draggedId=${draggedId}, targetId=${targetId}`);
+            return;
+        }
+
+        const [draggedHabit] = habits.splice(draggedIndex, 1);
+        habits.splice(targetIndex, 0, draggedHabit);
+
+        saveData();
+        renderHabits();
+        console.log(`Hábito reordenado: id=${draggedId} movido para posição=${targetIndex}`);
+    });
 }
 
 // Formulário de Hábitos
@@ -276,6 +334,7 @@ function renderHabits() {
         const card = document.createElement('div');
         card.className = 'habit-card';
         card.dataset.habitId = habit.id;
+        card.setAttribute('draggable', 'true');
         card.innerHTML = `
             <h3>${habit.name}</h3>
             <p>Frequência: ${habit.frequency === 'diario' ? 'Diário' : 'Semanal'}</p>
@@ -314,12 +373,12 @@ function renderHabits() {
     });
 }
 
-function renderProjects() {
-    console.log('Renderizando projetos:', projects);
+function renderProjects(projs = projects) {
+    console.log('Renderizando projetos:', projs);
     const container = document.getElementById('projectsList');
-    container.innerHTML = ''; // Clear the container or replace with valid content
+    container.innerHTML = '';
 
-    projects.forEach(project => {
+    projs.forEach(project => {
         const completedTasks = project.tasks.filter(t => t.completed).length;
         const totalTasks = project.tasks.length;
         const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -354,6 +413,17 @@ function renderProjects() {
         `;
         container.appendChild(card);
     });
+}
+
+function renderProjectsWithFilter(filter) {
+    let filteredProjects = projects;
+    if (filter === 'completed') {
+        filteredProjects = projects.filter(p => p.tasks.every(t => t.completed));
+    } else if (filter === 'pending') {
+        filteredProjects = projects.filter(p => !p.tasks.every(t => t.completed));
+    }
+    renderProjects(filteredProjects);
+    console.log(`Projetos filtrados: ${filter}, total=${filteredProjects.length}`);
 }
 
 function renderDailySummary() {

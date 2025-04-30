@@ -90,6 +90,14 @@
                 <button type="submit" id="projectSubmitButton">Adicionar Projeto</button>
             </form>
             <h2>Meus Projetos</h2>
+            <div class="filter-group">
+                <label for="projectFilter">Filtrar Projetos:</label>
+                <select id="projectFilter">
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendente</option>
+                    <option value="completed">Concluídos</option>
+                </select>
+            </div>
             <div id="projectsList"></div>
         </section>
 

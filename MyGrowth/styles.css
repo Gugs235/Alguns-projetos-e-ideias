@@ -142,6 +142,11 @@ button:hover {
     gap: 10px;
 }
 
+.habit-card.dragging {
+    opacity: 0.5;
+    border: 2px dashed #007bff;
+}
+
 .progress-bar {
     height: 10px;
     background: #eee;
@@ -176,6 +181,30 @@ button:hover {
 
 .delete-button:focus {
     outline: 2px solid #c82333;
+}
+
+/* Filtro de Projetos */
+.filter-group {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    font-weight: bold;
+}
+
+.filter-group select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+}
+
+.filter-group select:focus {
+    outline: 2px solid #007bff;
 }
 
 /* Resumo Diário */
@@ -308,6 +337,11 @@ button:hover {
 
     .achievements-grid {
         grid-template-columns: 1fr;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
