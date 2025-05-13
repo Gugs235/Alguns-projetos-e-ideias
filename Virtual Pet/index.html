@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Pet Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #petSprite { width: 150px; height: 150px; background: url('pet.png') center; }
+    .stat-bar { height: 10px; background: #ccc; }
+    .stat-fill { height: 100%; background: #4caf50; transition: width 0.3s; }
+  </style>
+</head>
+<body class="bg-blue-100 flex flex-col items-center min-h-screen p-4">
+  <h1 id="petName" class="text-2xl font-bold text-gray-800">My Pet</h1>
+  <div id="petSprite" class="my-4"></div>
+  <div class="w-full max-w-xs">
+    <div class="mb-2">Hunger: <div class="stat-bar"><div id="hungerFill" class="stat-fill" style="width: 100%"></div></div></div>
+    <div class="mb-2">Happiness: <div class="stat-bar"><div id="happinessFill" class="stat-fill" style="width: 100%"></div></div></div>
+    <div class="mb-2">Cleanliness: <div class="stat-bar"><div id="cleanlinessFill" class="stat-fill" style="width: 100%"></div></div></div>
+    <div class="mb-2">Energy: <div class="stat-bar"><div id="energyFill" class="stat-fill" style="width: 100%"></div></div></div>
+  </div>
+  <div class="flex space-x-2 mt-4">
+    <button onclick="feed()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Feed</button>
+    <button onclick="play()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Play</button>
+    <button onclick="clean()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">Clean</button>
+    <button onclick="rest()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Rest</button>
+  </div>
+  <div class="mt-4">Coins: <span id="coins">0</span></div>
+  <script src="game.js"></script>
+</body>
+</html>
