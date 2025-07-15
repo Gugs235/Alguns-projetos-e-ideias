@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EBD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>EBD - AR1</h1>
+            <div class="nav-toggle"><i class="fas fa-bars"></i></div>
+            <div class="nav-tabs">
+                <a href="#home" class="tab-link active" data-tab="home">Início</a>
+                <a href="#classes" class="tab-link" data-tab="classes">Classes</a> <!-- habits -->
+                <a href="#cadastros" class="tab-link" data-tab="cadastros">Cadastros</a> <!-- projects -->
+                <a href="#relatorios" class="tab-link" data-tab="relatorios">Relatorios</a> <!-- achievements -->
+            </div>
+            <div>Pontos: <span id="points">0</span> | Nível: <span id="level">1</span></div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Tela de Início -->
+        <section id="home" class="tab-content active">
+            <h2>Resumo Diário</h2>
+            <div id="dailySummary" class="daily-summary"></div>
+            <h2>Meus Hábitos</h2>
+            <div id="classesList"></div>
+            <h2>Conquistas</h2>
+            <div id="relatoriosSummary" class="relatorios-summary"></div>
+            <div class="reset-section">
+                <button id="resetButton">Reiniciar Tudo</button>
+            </div>
+        </section>
+
+        <!-- Tela de Hábitos -->
+        <section id="classes" class="tab-content">
+            <h2 id="habitFormTitle">Adicionar Hábito</h2>
+            <form id="habitForm" class="habit-form">
+                <input type="hidden" id="editingHabitId">
+                <div class="form-group">
+                    <label for="habitName">Nome do hábito</label>
+                    <input type="text" id="habitName" placeholder="Ex.: Comer" maxlength="50" required>
+                    <div id="nameError" class="error">O nome é obrigatório e deve ter até 50 caracteres.</div>
+                </div>
+                <div class="form-group">
+                    <label for="habitFrequency">Frequência</label>
+                    <select id="habitFrequency">
+                        <option value="diario">Diário</option>
+                        <option value="semanal">Semanal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dailyExecutions">Execuções por dia</label>
+                    <input type="number" id="dailyExecutions" min="1" max="5" placeholder="Ex.: 3" required>
+                    <div id="executionsError" class="error">Deve ser entre 1 e 5.</div>
+                </div>
+                <div class="form-group">
+                    <label for="habitTimes">Horários (HH:MM, separados por vírgula)</label>
+                    <input type="text" id="habitTimes" placeholder="Ex.: 8:00,12:00,20:00">
+                    <div id="timesError" class="error">Use formato HH:MM, separado por vírgulas.</div>
+                </div>
+                <button type="submit" id="classeSubmitButton">Adicionar Classe</button>
+            </form>
+        </section>
+
+        <!-- Tela de Projetos -->
+        <section id="cadastros" class="tab-content">
+            <h2 id="projectFormTitle">Adicionar Projeto</h2>
+            <form id="projectForm" class="project-form">
+                <input type="hidden" id="editingProjectId">
+                <div class="form-group">
+                    <label for="projectName">Nome do projeto</label>
+                    <input type="text" id="projectName" placeholder="Ex.: Fazer um arroz" maxlength="50" required>
+                    <div id="projectNameError" class="error">O nome é obrigatório e deve ter até 50 caracteres.</div>
+                </div>
+                <div class="form-group">
+                    <label for="projectDescription">Descrição (opcional)</label>
+                    <textarea id="projectDescription" placeholder="Ex.: Preparar um arroz soltinho" maxlength="200"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectTasks">Tarefas (separadas por vírgula)</label>
+                    <input type="text" id="projectTasks" placeholder="Ex.: Amassar o alho, Colocar o óleo, Fritar o alho" required>
+                    <div id="tasksError" class="error">Insira pelo menos uma tarefa.</div>
+                </div>
+                <button type="submit" id="projectSubmitButton">Adicionar Projeto</button>
+            </form>
+            <h2>Meus Projetos</h2>
+            <div class="filter-group">
+                <label for="projectFilter">Filtrar Projetos:</label>
+                <select id="projectFilter">
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendente</option>
+                    <option value="completed">Concluídos</option>
+                </select>
+            </div>
+            <div id="cadastrosList"></div>
+        </section>
+
+        <!-- Tela de Conquistas -->
+        <section id="relatorios" class="tab-content">
+            <h2>Minhas Conquistas</h2>
+            <div id="relatoriosList" class="relatorios-grid"></div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
