@@ -1,0 +1,39 @@
+.container_card_classificacao_empresarial{
+	position: relative;
+	width: 350px;
+	height: 500px;
+}
+
+.carta {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+
+	transform-style: preserve-3d;
+	transition: all 0.5s ease;
+}
+
+.container_card_classificacao_empresarial .carta:hover {
+	transform: rotateY(180deg);
+}
+
+.frente {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+
+	backface-visibility: hidden;
+	background: #ff0000;
+	color: #000;
+}
+
+.verso {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+
+	backface-visibility: hidden;
+	background: #000;
+	color: #fff;
+	transform: rotateY(180deg);
+}
