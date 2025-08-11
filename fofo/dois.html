@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Pra Alguém Especial 💖</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: "Segoe UI", sans-serif;
+				color: #333;
+				text-align: center;
+				padding: 2em;
+				overflow: hidden;
+				animation: bgGradient 15s ease infinite;
+				background-size: 400% 400%;
+			}
+
+			@keyframes bgGradient {
+				0% {
+					background: linear-gradient(45deg, #ffe0ec, #e6f0ff);
+				}
+				25% {
+					background: linear-gradient(45deg, #ffd6f0, #ccefff);
+				}
+				50% {
+					background: linear-gradient(45deg, #ffecf5, #d0f0ff);
+				}
+				75% {
+					background: linear-gradient(45deg, #ffe0ec, #e6f0ff);
+				}
+				100% {
+					background: linear-gradient(45deg, #ffe0ec, #e6f0ff);
+				}
+			}
+
+			.mensagem {
+				max-width: 700px;
+				margin: 0 auto;
+				background-color: #ffffffcc;
+				padding: 2em;
+				border-radius: 20px;
+				box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+				animation: fadeIn 2s ease-in-out;
+				position: relative;
+				z-index: 1;
+			}
+
+			h1 {
+				font-size: 2.5em;
+				color: #c44569;
+				margin-bottom: 0.5em;
+			}
+
+			h2 {
+				margin-top: 1.5em;
+				color: #994c94;
+			}
+
+			p {
+				font-size: 1.2em;
+				margin: 1em 0;
+			}
+
+			ul {
+				list-style: none;
+				padding: 0;
+				text-align: left;
+				margin-top: 1em;
+			}
+
+			li::before {
+				content: "💖 ";
+			}
+
+			li {
+				font-size: 1.1em;
+				margin: 0.5em 0;
+			}
+
+			.final {
+				margin-top: 2em;
+				font-style: italic;
+				color: #555;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* Corações animados */
+			.hearts {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
+				z-index: 0;
+			}
+
+			.heart {
+				position: absolute;
+				font-size: 24px;
+				animation: float 6s infinite ease-in;
+				opacity: 0.8;
+			}
+
+			@keyframes float {
+				0% {
+					transform: translateY(100vh) scale(1);
+					opacity: 0;
+				}
+				50% {
+					opacity: 1;
+				}
+				100% {
+					transform: translateY(-10vh) scale(1.5);
+					opacity: 0;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Corações flutuantes -->
+		<div class="hearts">
+			<div class="heart" style="left: 10%; animation-delay: 0s">💗</div>
+			<div class="heart" style="left: 25%; animation-delay: 2s">💖</div>
+			<div class="heart" style="left: 40%; animation-delay: 4s">💕</div>
+			<div class="heart" style="left: 60%; animation-delay: 1s">💘</div>
+			<div class="heart" style="left: 80%; animation-delay: 3s">❤️</div>
+		</div>
+
+		<!-- Mensagem -->
+		<div class="mensagem">
+			<h1>Ei, moça... ✨</h1>
+			<p>Você talvez não tenha notado, mas alguém te admira em silêncio 🫣</p>
+			<p>
+				Mesmo sem muita conversa, há algo em você que encanta, inspira e ilumina.
+			</p>
+
+			<h2>Coisas que me fazem te notar 🌷</h2>
+			<ul>
+				<li>Seu sorriso, que é simplesmente encantador 😍</li>
+				<li>Sua risada leve, que parece contagiar a sala 😂</li>
+				<li>Seu jeitinho fofo e natural 🐣</li>
+				<li>A calma que você transmite só de estar por perto 🌸</li>
+				<li>O brilho nos seus olhos quando está focada ✨</li>
+				<li>Sua criatividade 🎨</li>
+				<li>Seu mistério 🧩</li>
+				<li>E o simples fato de ser... você 💖</li>
+			</ul>
+
+			<p class="final">
+				Talvez essa mensagem te surpreenda, ou talvez não, ou sei lá kk...
+				Mas tudo bem. Só queria que você soubesse o quanto é especial e legal🌟
+			</p>
+		</div>
+	</body>
+</html>
+
+
+verde, azul e marrou ou preto

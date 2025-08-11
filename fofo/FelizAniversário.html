@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Feliz Aniversário 🎉</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: "Segoe UI", sans-serif;
+				color: #333;
+				text-align: center;
+				padding: 2em;
+				overflow: hidden;
+				animation: bgGradient 15s ease infinite;
+				background-size: 400% 400%;
+			}
+
+			@keyframes bgGradient {
+				0% {
+					background: linear-gradient(45deg, #ffe0ec, #e6f0ff);
+				}
+				25% {
+					background: linear-gradient(45deg, #ffecd2, #fcb69f);
+				}
+				50% {
+					background: linear-gradient(45deg, #fbc2eb, #a6c1ee);
+				}
+				75% {
+					background: linear-gradient(45deg, #ffd6f0, #ccefff);
+				}
+				100% {
+					background: linear-gradient(45deg, #ffe0ec, #e6f0ff);
+				}
+			}
+
+			.mensagem {
+				max-width: 700px;
+				margin: 0 auto;
+				background-color: #ffffffcc;
+				padding: 2em;
+				border-radius: 20px;
+				box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+				animation: fadeIn 2s ease-in-out;
+				position: relative;
+				z-index: 1;
+			}
+
+			h1 {
+				font-size: 2.5em;
+				color: #d96c9b;
+				margin-bottom: 0.5em;
+			}
+
+			h2 {
+				margin-top: 1.5em;
+				color: #994c94;
+			}
+
+			p {
+				font-size: 1.2em;
+				margin: 1em 0;
+			}
+
+			ul {
+				list-style: none;
+				padding: 0;
+				text-align: left;
+				margin-top: 1em;
+			}
+
+			li::before {
+				content: "🎈 ";
+			}
+
+			li {
+				font-size: 1.1em;
+				margin: 0.5em 0;
+			}
+
+			.final {
+				margin-top: 2em;
+				font-style: italic;
+				color: #555;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* Corações animados */
+			.hearts {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
+				z-index: 0;
+			}
+
+			.heart {
+				position: absolute;
+				font-size: 24px;
+				animation: float 6s infinite ease-in;
+				opacity: 0.8;
+			}
+
+			@keyframes float {
+				0% {
+					transform: translateY(100vh) scale(1);
+					opacity: 0;
+				}
+				50% {
+					opacity: 1;
+				}
+				100% {
+					transform: translateY(-10vh) scale(1.5);
+					opacity: 0;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Corações flutuantes -->
+		<div class="hearts">
+			<div class="heart" style="left: 10%; animation-delay: 0s">💖</div>
+			<div class="heart" style="left: 20%; animation-delay: 2s">🎂</div>
+			<div class="heart" style="left: 30%; animation-delay: 4s">🥳</div>
+			<div class="heart" style="left: 40%; animation-delay: 1s">💝</div>
+			<div class="heart" style="left: 50%; animation-delay: 3s">🎈</div>
+			<div class="heart" style="left: 60%; animation-delay: 5s">🎉</div>
+			<div class="heart" style="left: 70%; animation-delay: 8s">🎁</div>
+			<div class="heart" style="left: 80%; animation-delay: 7s">🎂</div>
+			<div class="heart" style="left: 90%; animation-delay: 10s">✨</div>
+		</div>
+
+		<!-- Mensagem -->
+		<div class="mensagem">
+			<h1>Feliz Aniversário senhorita 🎉</h1>
+			<p>Ontem o mundo acordou mais bonito, porque foi o seu dia 🌟</p>
+			<p>
+				Que seu dia seja repleto de sorrisos, abraços sinceros e momentos que
+				aqueçam o coração. <br />
+				Que o seu dia seja tão lindo quanto você, e que todos os seus sonhos sejam
+				alcançados. <br />
+
+				Você merece toda a felicidade do mundo, hoje e sempre. <br />
+				Parabéns por mais um ano de vida e por ser essa pessoa tão especial! 🎂✨
+				Parabéns, você merece! 🎉
+			</p>
+			<br />
+			<h2>O que te torna inesquecível... 🎁</h2>
+			<ul>
+				<li>Seu sorriso sincero que ilumina qualquer lugar 😄</li>
+				<li>Seu jeitinho leve, doce e encantador 💕</li>
+				<li>Seu olhar que transmite calma e alegria 👀</li>
+				<li>A forma como você simplesmente é... você 🌸</li>
+			</ul>
+
+			<p class="final">
+				Que seu novo ano seja repleto de bênçãos, risadas, paz e momentos lindos.
+				Feliz aniversário senhorita! 😃🌸
+			</p>
+
+			<p class="final">— De alguém que te admira muito ✨</p>
+		</div>
+	</body>
+</html>

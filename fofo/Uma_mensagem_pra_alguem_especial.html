@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Pra Alguém Especial</title>
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				font-family: "Segoe UI", sans-serif;
+				background: linear-gradient(135deg, #ffe0ec, #e6f0ff);
+				color: #333;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				min-height: 100vh;
+				text-align: center;
+				padding: 2em;
+			}
+
+			h1 {
+				font-size: 2.5em;
+				color: #c44569;
+				margin-bottom: 0.5em;
+			}
+
+			.mensagem {
+				max-width: 700px;
+				background-color: #ffffffcc;
+				padding: 1.5em;
+				border-radius: 20px;
+				box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+				animation: fadeIn 2s ease-in-out;
+			}
+
+			ul {
+				list-style: none;
+				padding: 0;
+				margin-top: 1em;
+				text-align: left;
+			}
+
+			li::before {
+				content: "💫 ";
+			}
+
+			li {
+				font-size: 1.2em;
+				margin: 0.5em 0;
+			}
+
+			.final {
+				margin-top: 2em;
+				font-style: italic;
+				color: #555;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="mensagem">
+			<h1>Ei, moça...</h1>
+			<p>Você talvez não tenha notado, mas alguém te admira em silêncio.</p>
+			<p>
+				Mesmo sem conversarmos tanto, há algo em você que chama atenção de forma
+				única.
+			</p>
+
+			<h2>Coisas que me fazem te notar:</h2>
+			<ul>
+				<li>Seu sorriso, que é simplesmente encantador</li>
+				<li>Sua risada leve, que parece contagiar o ambiente</li>
+				<li>Seu jeitinho fofo e natural</li>
+				<li>A calma que você transmite só de estar por perto</li>
+				<li>O brilho nos seus olhos quando está focada</li>
+			</ul>
+
+			<p class="final">
+				Talvez essa mensagem te surpreenda, ou talvez você nem saiba quem eu sou...
+				Mas tudo bem. Só queria que você soubesse o quanto é especial.
+			</p>
+		</div>
+	</body>
+</html>
