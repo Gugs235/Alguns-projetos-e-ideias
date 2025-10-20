@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil{% endblock %}
+
+{% block content %}
+<h1>Perfil do Usuário</h1>
+<div class="perfil-info">
+    <p><strong>Nome:</strong> {{ usuario[0] }} {{ usuario[1] }}</p>
+    <p><strong>Email:</strong> {{ usuario[2] }}</p>
+    {% if cartao %}
+    <p><strong>Cartão:</strong> **** **** **** {{ cartao[1][-4:] }}</p>
+    {% endif %}
+</div>
+{% endblock %}

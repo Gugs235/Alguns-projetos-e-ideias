@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Filmes em Cartaz</h1>
+<div class="filmes-grid">
+    {% for filme in filmes %}
+    <div class="filme-card">
+        <img src="{{ url_for('poster', filename=filme[0] ~ '.jpg') }}" alt="{{ filme[1] }}">
+        <h3>{{ filme[1] }}</h3>
+        <a href="{{ url_for('filme', filme_id=filme[0]) }}" class="btn">Ver Detalhes</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

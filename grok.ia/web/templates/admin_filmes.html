@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Filmes{% endblock %}
+
+{% block content %}
+<h1>Gerenciar Filmes</h1>
+<ul>
+    {% for filme in filmes %}
+    <li>{{ filme[1] }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

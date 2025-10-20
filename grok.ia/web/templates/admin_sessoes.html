@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Sessões{% endblock %}
+
+{% block content %}
+<h1>Gerenciar Sessões</h1>
+<ul>
+    {% for sessao in sessoes %}
+    <li>{{ sessao[1] }} - {{ sessao[2] }} - {{ sessao[3] }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

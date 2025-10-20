@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Compras{% endblock %}
+
+{% block content %}
+<h1>Histórico de Compras</h1>
+<div class="compras-list">
+    {% for compra in compras %}
+    <div class="compra">
+        <p>Filme: {{ compra[1] }}</p>
+        <p>Data: {{ compra[2] }}</p>
+        <p>Horário: {{ compra[3] }}</p>
+        <p>Sala: {{ compra[4] }}</p>
+        <p>Cinema: {{ compra[5] }}</p>
+        <p>Assento: {{ compra[6] }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

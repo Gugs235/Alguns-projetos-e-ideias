@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PobreVision{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="logo">🎬 PobreVision</div>
+        {% if session.usuario_id %}
+        <nav>
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('favoritos') }}">Favoritos</a>
+            <a href="{{ url_for('compras') }}">Compras</a>
+            <a href="{{ url_for('perfil') }}">Perfil</a>
+            <a href="{{ url_for('logout') }}">Sair</a>
+        </nav>
+        {% endif %}
+    </header>
+    <main>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>&copy; 2023 PobreVision. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>

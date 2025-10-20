@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}{{ filme[1] }}{% endblock %}
+
+{% block content %}
+<div class="filme-detail">
+    <img src="{{ url_for('poster', filename=filme[0] ~ '.jpg') }}" alt="{{ filme[1] }}">
+    <div class="info">
+        <h1>{{ filme[1] }}</h1>
+        <p><strong>Gênero:</strong> {{ filme[5] }}</p>
+        <p><strong>Duração:</strong> {{ filme[3] }}</p>
+        <p><strong>Classificação:</strong> {{ filme[6] }}</p>
+        <p><strong>Data de Lançamento:</strong> {{ filme[4] }}</p>
+        <p><strong>Sinopse:</strong> {{ filme[7] }}</p>
+        <a href="{{ filme[8] }}" target="_blank">Assistir Trailer</a>
+        <form method="post" action="{{ url_for('favoritar', filme_id=filme[0]) }}">
+            <button type="submit" class="btn">{% if backend.is_favorito(session.usuario_id, filme[0]) %}Desfavoritar{% else %}Favoritar{% endif %}</button>
+        </form>
+        <a href="{{ url_for('sessoes', filme_id=filme[0]) }}" class="btn">Comprar Ingresso</a>
+    </div>
+</div>
+{% endblock %}

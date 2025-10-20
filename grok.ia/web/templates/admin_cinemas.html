@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Cinemas{% endblock %}
+
+{% block content %}
+<h1>Gerenciar Cinemas</h1>
+<ul>
+    {% for cinema in cinemas %}
+    <li>{{ cinema[1] }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Sessões{% endblock %}
+
+{% block content %}
+<h1>Sessões para {{ filme[1] }}</h1>
+<div class="sessoes-list">
+    {% for sessao in sessoes %}
+    <div class="sessao">
+        <p>{{ sessao[4] }} - {{ sessao[1] }} às {{ sessao[2] }} ({{ sessao[3] }})</p>
+        <a href="{{ url_for('assentos', sessao_id=sessao[0]) }}" class="btn">Selecionar Assentos</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

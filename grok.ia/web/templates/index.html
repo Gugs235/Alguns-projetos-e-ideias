@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Bem-vindo ao PobreVision{% endblock %}
+
+{% block content %}
+<div class="welcome">
+    <h1>Bem-vindo ao PobreVision!</h1>
+    <p>Faça login ou cadastre-se para comprar ingressos.</p>
+    <div class="buttons">
+        <a href="{{ url_for('login') }}" class="btn">Login</a>
+        <a href="{{ url_for('cadastro') }}" class="btn">Cadastrar</a>
+    </div>
+</div>
+{% endblock %}

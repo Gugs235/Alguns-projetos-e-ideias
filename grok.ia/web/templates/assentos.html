@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Selecionar Assentos{% endblock %}
+
+{% block content %}
+<h1>Selecionar Assentos</h1>
+<form method="post">
+    <div class="assentos-grid">
+        {% for i in range(1, 26) %}
+        <label>
+            <input type="checkbox" name="assentos" value="A{{ '%02d'|format(i) }}" {% if 'A%02d'|format(i) not in assentos_disponiveis %}disabled{% endif %}>
+            A{{ '%02d'|format(i) }}
+        </label>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn">Confirmar Seleção</button>
+</form>
+{% endblock %}

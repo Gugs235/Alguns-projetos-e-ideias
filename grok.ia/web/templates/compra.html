@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmar Compra{% endblock %}
+
+{% block content %}
+<h1>Confirmar Compra</h1>
+<form method="post">
+    <p>Assentos Selecionados: {{ assentos|join(', ') }}</p>
+    {% for assento in assentos %}
+    <label for="tipo_{{ assento }}">Tipo de Ingresso para {{ assento }}:</label>
+    <select name="tipo_{{ assento }}" id="tipo_{{ assento }}">
+        {% for tipo in tipos_ingresso %}
+        <option value="{{ tipo[0] }}">{{ tipo[1] }} ({{ tipo[2] }}% desconto)</option>
+        {% endfor %}
+    </select>
+    {% endfor %}
+    <label for="forma_pagamento">Forma de Pagamento:</label>
+    <select name="forma_pagamento" id="forma_pagamento">
+        <option value="Cartão de Crédito/Débito">Cartão de Crédito/Débito</option>
+        <option value="PIX">PIX</option>
+        <option value="Boleto">Boleto</option>
+    </select>
+    <button type="submit" class="btn">Finalizar Compra</button>
+</form>
+{% endblock %}
