@@ -1,3 +1,5 @@
+@import url("_colors.css");
+
 #sobre {
 	width: 100%;
 	height: auto;
@@ -9,11 +11,8 @@
 	flex-wrap: wrap;
 	background-image: linear-gradient(
 		to bottom,
-		#18181b,
-		#1a1930,
-		#201844,
-		#2b1355,
-		#3d0164
+		var(--cor-primaria),
+		var(--cor-secundaria)
 	);
 }
 .containerTitleSobre {
@@ -70,9 +69,14 @@
 	/* font-size: 32px; */
 	font-weight: 700;
 	opacity: 1;
-	background: linear-gradient(-45deg, #f89b29 0%, #ff0f7b 100%);
+	background: linear-gradient(
+		-45deg,
+		var(--accent-laranja) 0%,
+		var(--accent-vermelho) 100%
+	);
 	background-clip: text;
 	-webkit-background-clip: text;
+	background-clip: text;
 	-webkit-text-fill-color: transparent;
 	transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -89,8 +93,12 @@
 	justify-content: center;
 	text-align: center;
 	gap: 10px;
-	background: linear-gradient(-45deg, #f89b29 0%, #ff0f7b 100%);
-	color: #e8e8e8;
+	background: linear-gradient(
+		-45deg,
+		var(--accent-laranja) 0%,
+		var(--accent-vermelho) 100%
+	);
+	color: var(--neutro-claro);
 	padding: 20px;
 	line-height: 1.5;
 	border-radius: 5px;

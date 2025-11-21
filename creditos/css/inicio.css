@@ -1,8 +1,10 @@
+@import url("_colors.css");
+
 #inicio {
 	font-family: "Inter", "Helvetica Neue", sans-serif;
 	overflow: hidden;
-	background-color: #050505;
-	color: white;
+	background-color: var(--preto);
+	color: var(--branco);
 	height: 100vh;
 	display: flex;
 	align-items: center;
@@ -21,10 +23,12 @@
 	font-size: 3.5rem;
 	font-weight: 800;
 	margin-bottom: 1.5rem;
-	background: linear-gradient(to right, #fff, #acacac);
+	background: linear-gradient(to right, var(--branco), var(--neutro-claro));
 	-webkit-background-clip: text;
+	background-clip: text;
+	background-clip: text;
 	-webkit-text-fill-color: transparent;
-	text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+	text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
 }
 
 .descSite {
@@ -35,8 +39,12 @@
 }
 
 .btn {
-	background: linear-gradient(90deg, #ff3a82, #5233ff);
-	color: white;
+	background: linear-gradient(
+		90deg,
+		var(--accent-vermelho),
+		var(--accent-azul-claro)
+	);
+	color: var(--branco);
 	font-weight: 600;
 	font-size: 1rem;
 	padding: 0.8rem 2rem;
@@ -75,8 +83,8 @@
 	height: 40vw;
 	background: linear-gradient(
 		40deg,
-		rgba(255, 0, 128, 0.8),
-		rgba(255, 102, 0, 0.4)
+		var(--accent-vermelho),
+		var(--accent-laranja)
 	);
 	top: -10%;
 	left: -10%;
@@ -88,8 +96,8 @@
 	height: 45vw;
 	background: linear-gradient(
 		240deg,
-		rgba(72, 0, 255, 0.8),
-		rgba(0, 183, 255, 0.4)
+		var(--accent-azul-claro),
+		rgba(0, 183, 255, 0.35)
 	);
 	bottom: -20%;
 	right: -10%;
@@ -101,8 +109,8 @@
 	height: 30vw;
 	background: linear-gradient(
 		120deg,
-		rgba(133, 89, 255, 0.5),
-		rgba(98, 216, 249, 0.3)
+		var(--accent-azul-claro),
+		var(--neutro-claro)
 	);
 	top: 60%;
 	left: 20%;

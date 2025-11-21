@@ -1,0 +1,36 @@
+/* Paleta de cores do projeto (variáveis CSS)
+   Lista simples: Primária - #032639, Secundária - #034b61, etc.
+*/
+:root {
+	/* Primárias */
+	--cor-primaria: #032639; /* Primária */
+	--cor-secundaria: #034b61; /* Secundária */
+
+	/* Acentos */	
+	--accent-azul-claro: #2daeff;
+	--accent-verde: #00cc00;
+	--accent-verde-lima: #c6fe1f;
+	--accent-verde-lima-2: #d1fe20;
+	--accent-laranja: #ffaa00;
+	--accent-laranja-2: #f97000;
+	--accent-vermelho: #ff4d4d;
+
+	/* Paleta de gráficos / extras */
+	--grafico-vermelho: #ff0000;
+	--grafico-amarelo: #ffe90a;
+	--grafico-verde: #00ff00;
+
+	/* Neutros */
+	--neutro-claro: #f0f0f0;
+	--neutro-medio: #cccccc;
+	--neutro-borda: #9d9d9d;
+
+	/* Base */
+	--preto: #000000;
+	--branco: #ffffff;
+
+	/* Sombras / overlays */
+	--sombra-overlay: rgba(0, 0, 0, 0.5);
+}
+
+/* Uso: importar este arquivo e referenciar var(--cor-primaria) em seus estilos */
