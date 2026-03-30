@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Anna Beatriz - Minha Senhorita</title>
+		<style>
+			:root {
+				--bg1: #f8ecff;
+				--bg2: #e7f0ff;
+				--rose: #ffd8e8;
+				--lavender: #d7c4ff;
+				--blue: #cde5ff;
+				--softblack: #2c2a34;
+				--text: #2f2c38;
+				--card: rgba(255, 255, 255, 0.9);
+				--shadow: 0 12px 28px rgba(58, 49, 86, 0.16);
+				--accent: #ba93ff;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				padding: 1rem;
+				font-family: "Segoe UI", "Inter", system-ui, sans-serif;
+				background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+				color: var(--text);
+				min-height: 100vh;
+			}
+
+			.page {
+				max-width: 720px;
+				margin: 0 auto;
+				padding: 1rem;
+				display: grid;
+				gap: 1rem;
+			}
+
+			header {
+				background: linear-gradient(
+					145deg,
+					rgba(255, 232, 247, 0.85),
+					rgba(217, 196, 255, 0.8)
+				);
+				border: 2px solid rgba(255, 154, 218, 0.4);
+				border-radius: 24px;
+				box-shadow: var(--shadow);
+				padding: 1.2rem;
+				text-align: center;
+				animation: pop 0.7s ease-out;
+				position: relative;
+				overflow: hidden;
+			}
+
+			header::before {
+				content: "♡ ♡ ♡";
+				position: absolute;
+				top: -10px;
+				right: 12px;
+				color: rgba(255, 105, 180, 0.45);
+				font-size: 1.4rem;
+				animation: floatup 3s infinite ease-in-out;
+			}
+
+			h1 {
+				margin: 0.5rem 0 0.4rem;
+				font-size: clamp(1.75rem, 5vw, 2.6rem);
+				color: #4e2b6f;
+				font-weight: 700;
+				text-shadow: 0 4px 9px rgba(128, 102, 140, 0.25);
+			}
+
+			h2 {
+				margin: 0.4rem 0 0.4rem;
+				color: #5c4a8a;
+				font-size: clamp(1.15rem, 4vw, 1.45rem);
+			}
+
+			.subtitulo {
+				font-size: 1rem;
+				color: #5d4e72;
+				letter-spacing: 0.01em;
+				margin-bottom: 0.6rem;
+			}
+
+			.card {
+				background: var(--card);
+				border: 1px solid rgba(170, 148, 202, 0.4);
+				border-radius: 20px;
+				box-shadow: var(--shadow);
+				padding: 1rem;
+				backdrop-filter: blur(5px);
+				animation: fadeIn 1s ease;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.card h3 {
+				margin-top: 0;
+				color: #3f2f53;
+			}
+
+			.card ul {
+				margin: 0.6rem 0 0;
+				padding-left: 1.2rem;
+			}
+
+			.card li {
+				margin-bottom: 0.5rem;
+				line-height: 1.5;
+				font-size: 1rem;
+			}
+
+			.card li::marker {
+				color: #ba93ff;
+			}
+
+			.quote {
+				font-family: "Georgia", serif;
+				font-size: 1rem;
+				color: #4b3e66;
+				border-left: 4px solid #a790ed;
+				padding-left: 0.8rem;
+				margin: 0.7rem 0 0.4rem;
+			}
+
+			button {
+				width: 100%;
+				border: 0;
+				border-radius: 18px;
+				background: linear-gradient(120deg, #f8bbd0, #caa9ff);
+				color: #fff;
+				font-size: 1.1rem;
+				padding: 0.85rem;
+				font-weight: 700;
+				cursor: pointer;
+				box-shadow: 0 10px 22px rgba(148, 101, 194, 0.35);
+				transition:
+					transform 0.25s ease,
+					box-shadow 0.25s ease;
+			}
+
+			button:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 14px 26px rgba(148, 101, 194, 0.48);
+			}
+
+			.pulse {
+				animation: pulse 1.2s infinite alternate;
+			}
+
+			.magic {
+				margin-top: 0.8rem;
+				font-size: 1.1rem;
+				color: #3f3257;
+				font-weight: 600;
+				min-height: 40px;
+				text-align: center;
+			}
+
+			.heart {
+				position: fixed;
+				width: 24px;
+				height: 24px;
+				opacity: 0;
+				pointer-events: none;
+				background: radial-gradient(circle at 30% 20%, #fff, #ff7db6);
+				mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path fill="white" d="M23 4c-2.8 0-5.2 1.9-6 4.6C16.2 5.9 13.8 4 11 4 6.6 4 3 7.6 3 12c0 6.5 13 15 13 15s13-8.5 13-15c0-4.4-3.6-8-8-8z"/></svg>')
+					center/contain no-repeat;
+				-webkit-mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path fill="white" d="M23 4c-2.8 0-5.2 1.9-6 4.6C16.2 5.9 13.8 4 11 4 6.6 4 3 7.6 3 12c0 6.5 13 15 13 15s13-8.5 13-15c0-4.4-3.6-8-8-8z"/></svg>')
+					center/contain no-repeat;
+			}
+
+			.draft {
+				margin-top: 0.5rem;
+				color: #52476e;
+				font-size: 0.92rem;
+				text-align: center;
+			}
+
+			footer {
+				text-align: center;
+				color: #5f526e;
+				font-size: 0.92rem;
+			}
+
+			@media (min-width: 720px) {
+				.page {
+					padding: 1.5rem;
+				}
+				.page {
+					gap: 1.2rem;
+				}
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(14px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes pop {
+				from {
+					transform: scale(0.96);
+					opacity: 0;
+				}
+				to {
+					transform: scale(1);
+					opacity: 1;
+				}
+			}
+
+			@keyframes pulse {
+				from {
+					transform: scale(1);
+				}
+				to {
+					transform: scale(1.03);
+				}
+			}
+
+			@keyframes floatup {
+				0% {
+					transform: translateY(0);
+				}
+				50% {
+					transform: translateY(-8px);
+				}
+				100% {
+					transform: translateY(0);
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<section class="page" id="mainPage">
+			<header>
+				<h1>Anna Beatriz, minha senhorita</h1>
+				<p class="subtitulo">Aninha, Bia, Bibia, my lady, sua linda e querida ♡</p>
+				<p class="subtitulo">
+					Você é a poesia do meu dia e a música do meu coração 🤍💜
+				</p>
+			</header>
+
+			<article class="card">
+				<h2>Por que eu te amo?</h2>
+				<ul>
+					<li>
+						Seu sorriso renova minha esperança igual na cena de "A Culpa é das
+						Estrelas" 🌟
+					</li>
+					<li>Seu olhar é meu abrigo, como na jornada de "5 Passos de Você" 🩷</li>
+					<li>
+						Seu jeito doce me lembra o amor e redenção dos filmes que você adora 🎬
+					</li>
+					<li>
+						Você coloca a Bíblia no centro e me inspira a ser melhor todo dia 🙏
+					</li>
+					<li>
+						Seu coração é minha escolha, como na Seleção e em cada capítulo da nossa
+						história
+					</li>
+				</ul>
+				<p class="quote">
+					"O amor não é algo que você encontra. O amor é algo que encontra você." -
+					"Como Eu Era Antes de Você"
+				</p>
+			</article>
+
+			<article class="card">
+				<h2>Versículo para nós</h2>
+				<p class="quote">
+					"O amor é paciente, o amor é bondoso..." - 1 Coríntios 13:4-7
+				</p>
+				<p>
+					Minha oração é que o Senhor guie cada passo nosso, como em cada música da
+					Isadora Pompeo e Projeto Sola.
+				</p>
+			</article>
+
+			<article class="card">
+				<h2>Citações que você ama</h2>
+				<p class="quote">
+					"Quem me dera que você tivesse visto o que eu vi" - A culpa é das estrelas
+				</p>
+				<p class="quote">
+					"Algumas histórias merecem ser vividas até o fim" - 5 Passos de Você
+				</p>
+				<p class="quote">
+					"Eu não quero um mundo onde você não exista" - Como eu era antes de você
+				</p>
+				<p class="quote">
+					"Mesmo no silêncio, sinto sua presença forte" - Amor de Redenção
+				</p>
+				<p class="quote">
+					"É assim que acaba: com amor, sem explicação" - É assim que acaba
+				</p>
+				<p class="quote">
+					"A escolha por você é a minha melhor história" - A Seleção
+				</p>
+			</article>
+
+			<article class="card">
+				<h2>Trilha sonora do coração</h2>
+				<p>Ouvimos juntos, cantamos juntos, e cada verso me lembra você.</p>
+				<p class="draft">Isadora Pompeo, Projeto Sola e a música que criamos:</p>
+				<a
+					href="https://suno.com/s/GLaSXmabQEYes2Wg"
+					target="_blank"
+					rel="noreferrer"
+					style="color: #512e7c; text-decoration: underline; font-weight: 700"
+					>Ouça nossa canção no Suno</a
+				>
+				<p style="margin-top: 0.5rem; color: #2b2341; font-size: 0.95rem">
+					Sua voz no meu coração é sempre o refrão.
+				</p>
+			</article>
+
+			<article class="card">
+				<h2>Jogo de carinho ♡</h2>
+				<button id="loveBtn" class="pulse">Enviar abraço virtual</button>
+				<div class="magic" id="magicText">
+					Clique e deixe sua linda aninha sorrir 🙂
+				</div>
+			</article>
+
+			<footer>
+				<p>Te amo demais, sempre seu apaixonado.</p>
+				<p>Com amor eterno, você, que te admira.</p>
+				<p>♡ 🤍💜❤️🩷🙂🙃</p>
+			</footer>
+		</section>
+
+		<script>
+			const texts = [
+				"Você ilumina meu mundo como um filme de amor cinematográfico.",
+				"Ás vezes eu penso: você faz meu coração tocar piano clássico.",
+				"A cada mensagem sua eu sinto 5 passos mais perto do para sempre.",
+				"Senhorita, você é meu verso favorito de 1 Coríntios 13.",
+				"Em toda a Seleção do mundo, eu te escolheria primeiro.",
+				"My lady, meu coração pertence a você em qualquer capítulo.",
+				"Você é a razão em cada próxima música que eu quero compor.",
+			];
+
+			const magicText = document.getElementById("magicText");
+			const loveBtn = document.getElementById("loveBtn");
+
+			function randomPhrase() {
+				const idx = Math.floor(Math.random() * texts.length);
+				magicText.textContent = texts[idx];
+			}
+
+			function createHeart(event) {
+				const heart = document.createElement("div");
+				heart.className = "heart";
+				heart.style.left = `${event.clientX - 10}px`;
+				heart.style.top = `${event.clientY - 10}px`;
+				heart.style.opacity = "0.8";
+				document.body.appendChild(heart);
+
+				const size = Math.random() * 14 + 16;
+				heart.style.width = `${size}px`;
+				heart.style.height = `${size}px`;
+				heart.style.background = `radial-gradient(circle at 30% 20%, #fff, rgba(255, 78, 164, 0.9))`;
+
+				const endX = event.clientX + (Math.random() * 50 - 25);
+				const endY = event.clientY - (Math.random() * 120 + 80);
+
+				heart.animate(
+					[
+						{ transform: "translate(0, 0) scale(0.3)", opacity: 0.8 },
+						{
+							transform: `translate(${endX - event.clientX}px, ${endY - event.clientY}px) scale(1)`,
+							opacity: 0.35,
+						},
+					],
+					{
+						duration: 1000 + Math.random() * 500,
+						easing: "cubic-bezier(0.39, 0.575, 0.565, 1)",
+					},
+				);
+
+				setTimeout(() => heart.remove(), 1700);
+			}
+
+			loveBtn.addEventListener("click", (event) => {
+				randomPhrase();
+				for (let i = 0; i < 8; i++) {
+					setTimeout(() => createHeart(event), i * 80);
+				}
+
+				const mini = document.createElement("span");
+				mini.textContent = "✨ Enviado com todo amor ✨";
+				mini.style.position = "absolute";
+				mini.style.left = "50%";
+				mini.style.top = "calc(100% - 20px)";
+				mini.style.transform = "translateX(-50%)";
+				mini.style.fontSize = "0.95rem";
+				mini.style.color = "#5d3f7a";
+				mini.style.opacity = "0";
+				loveBtn.parentElement.appendChild(mini);
+
+				mini.animate(
+					[
+						{ opacity: 0, transform: "translate(-50%, 4px)" },
+						{ opacity: 1, transform: "translate(-50%, -8px)" },
+					],
+					{ duration: 650, fill: "forwards" },
+				);
+
+				setTimeout(() => {
+					mini.animate(
+						[
+							{ opacity: 1, transform: "translate(-50%, -8px)" },
+							{ opacity: 0, transform: "translate(-50%, -24px)" },
+						],
+						{ duration: 500, fill: "forwards" },
+					);
+				}, 1200);
+
+				setTimeout(() => mini.remove(), 1800);
+			});
+
+			setInterval(randomPhrase, 6500);
+			document.addEventListener("scroll", () => {
+				const cards = document.querySelectorAll(".card");
+				cards.forEach((card) => {
+					const box = card.getBoundingClientRect();
+					if (box.top < window.innerHeight * 0.85 && box.bottom > 0) {
+						card.style.transform = "translateY(0px)";
+					}
+				});
+			});
+		</script>
+	</body>
+</html>
